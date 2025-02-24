@@ -25,20 +25,26 @@ const ProductsList = () => {
     setNewProducts(newProducts.map((item, index) => index === productIndex ? product : item))
   }, [newProducts])
 
-  const onDeleteProduct = useCallback((productIndex: number) => {
-    setNewProducts(newProducts.filter((item, index) => index !== productIndex))
+  const onDeleteProduct = useCallback(async (productIndex: number) => {
+    const tempProducts = newProducts.filter((item, index) => index !== productIndex)
+    await onSave(tempProducts, () => {
+      setNewProducts(tempProducts);
+    })
   }, [newProducts])
 
-  const onAddProduct = useCallback(() => {
-    setNewProducts([...newProducts, newProduct])
-    setNewProduct({name: '', value: 0})
+  const onAddProduct = useCallback(async () => {
+    const tempProducts = [...newProducts, newProduct]
+    await onSave(tempProducts, () => {
+      setNewProducts(tempProducts)
+      setNewProduct({name: '', value: 0})
+    });
   }, [newProduct, newProducts])
 
-  const onSave = useCallback(async () => {
+  const onSave = useCallback(async (value: Product[], callback?: () => void) => {
     setIsLoading(true)
     const response = await fetch(`/api/products`, {
       method: "PATCH",
-      body: JSON.stringify(newProducts),
+      body: JSON.stringify(value),
       headers: {'Content-Type': 'application/json'}
     });
     const res: { status: 'ok' } | { error: string } = await response.json();
@@ -46,10 +52,11 @@ const ProductsList = () => {
       setAlertData({isShow: true, severity: 'error'})
     } else {
       setAlertData({isShow: true, severity: 'success'})
-      setProducts(newProducts)
+      setProducts(value)
+      callback && callback()
     }
     setIsLoading(false)
-  }, [newProducts])
+  }, [])
 
   return (
     <div className={styles.ProductsList}>
@@ -81,7 +88,9 @@ const ProductsList = () => {
                 onChangeProduct({...item, value: Number(e.target.value)}, index)
               }
             />
-            <IconButton onClick={() => onDeleteProduct(index)}><CloseIcon/></IconButton>
+            <IconButton disabled={isLoading} onClick={() => onDeleteProduct(index)}>
+              {isLoading ? <CircularProgress size={24}/> : <CloseIcon/>}
+            </IconButton>
           </div>
         ))}
         <div className={styles.Product}>
@@ -102,10 +111,10 @@ const ProductsList = () => {
               setNewProduct({...newProduct, value: Number(e.target.value)})
             }
           />
-          <IconButton onClick={onAddProduct}><PlusIcon/></IconButton>
+          <IconButton onClick={onAddProduct}>{isLoading ? <CircularProgress size={24}/> : <PlusIcon/>}</IconButton>
         </div>
       </div>
-      <Button disabled={isLoading} onClick={onSave} className={styles.Button} variant='contained'>
+      <Button disabled={isLoading} onClick={() => onSave(newProducts)} className={styles.Button} variant='contained'>
         {isLoading ? <CircularProgress/> : 'Сохранить'}
       </Button>
     </div>
