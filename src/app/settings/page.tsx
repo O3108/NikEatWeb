@@ -1,9 +1,12 @@
 import React from 'react';
+import styles from './styles.module.scss'
+import SettingsList from "@/src/app/components/client/SettingsList";
 
-const Settings = () => {
+const Settings = async () => {
   return (
-    <div>
-
+    <div className={styles.Settings}>
+      <h1>Настройки</h1>
+      <SettingsList/>
     </div>
   );
 };

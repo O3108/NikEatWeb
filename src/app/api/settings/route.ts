@@ -1,8 +1,35 @@
-import {get} from "@vercel/edge-config";
 import {NextResponse} from "next/server";
+import {get} from "@vercel/edge-config";
 
 export const GET = async () => {
-  const response = await get('settings');
+  try {
+    const response = await get('settings');
 
-  return NextResponse.json(response);
+    return NextResponse.json(response);
+  } catch (error) {
+    return NextResponse.json({error: error.message});
+  }
+}
+
+export const PATCH = async (req: Request) => {
+  const settings = await req.json()
+  try {
+    const updateEdgeConfig = await fetch(
+      'https://api.vercel.com/v1/edge-config/ecfg_ccwwean4nieg4ymxdzve6dfxhhrs/items',
+      {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer tj9bIPCY1PhrnW3knXIgAkni`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: [{operation: 'update', key: 'settings', value: settings}],
+        }),
+      },
+    );
+    const result = await updateEdgeConfig.json();
+    return NextResponse.json(result);
+  } catch (error) {
+    return NextResponse.json({error: error.message});
+  }
 }

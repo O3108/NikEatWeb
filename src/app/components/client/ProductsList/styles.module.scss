@@ -1,0 +1,32 @@
+.ProductsList {
+  display: flex;
+  flex-direction: column;
+
+  .Products {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .Product {
+      display: flex;
+      gap: .5rem;
+      width: 100%;
+
+      &Name {
+        flex: 1;
+      }
+
+      &Value {
+        width: 4rem;
+      }
+    }
+  }
+
+  .Button {
+    position: fixed;
+    bottom: 70px;
+    left: 1rem;
+    width: calc(100vw - 2rem);
+    height: 50px;
+  }
+}

@@ -1,0 +1,13 @@
+.SettingsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .Button {
+    position: fixed;
+    bottom: 70px;
+    left: 1rem;
+    width: calc(100vw - 2rem);
+    height: 50px;
+  }
+}
