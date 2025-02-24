@@ -6,7 +6,7 @@ export const GET = async () => {
     const response = await get('products');
 
     return NextResponse.json(response);
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({error: error.message});
 
   }
@@ -30,7 +30,7 @@ export const PATCH = async (req: Request) => {
     );
     const result = await updateEdgeConfig.json();
     return NextResponse.json(result);
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({error: error.message});
   }
 }

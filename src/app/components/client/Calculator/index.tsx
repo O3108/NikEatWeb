@@ -22,7 +22,11 @@ const Calculator = () => {
 
   const productsForOptions = _sortBy(products.filter(item => !selectedProducts.find(findItem => findItem.name === item.name), 'name'));
   const totalValue = selectedProducts.reduce((acc, curr) => {
-    return acc += curr.value * curr.count * settings[selectedSettings]
+    if (settings[selectedSettings]) {
+      return acc += curr.value * curr.count * settings[selectedSettings]
+    } else {
+      return acc
+    }
   }, 0)
 
   const onChangeProduct = useCallback((product: (Product & { count: number }), productIndex: number) => {

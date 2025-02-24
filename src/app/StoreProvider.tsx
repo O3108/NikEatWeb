@@ -36,7 +36,7 @@ type StoreProviderProps = {
 }
 
 const StoreProvider = ({backSettings, backProducts, children}: StoreProviderProps) => {
-  const [settings, setSettings] = useState<Settings>(backSettings)
+  const [settings, setSettings] = useState<{ [x in keyof Settings]?: number }>(backSettings)
   const [products, setProducts] = useState<Product[]>(backProducts)
 
   return (
