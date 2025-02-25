@@ -49,7 +49,6 @@ const SettingsList = () => {
       </Alert>
       <TextField
         label='Длинный на день'
-        pattern="\d*"
         type='number'
         defaultValue={newSettings.longMorning}
         onChange={(e) =>
