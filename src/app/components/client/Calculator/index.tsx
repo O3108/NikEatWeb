@@ -85,7 +85,7 @@ const Calculator = () => {
           </div>
         ))}
       </div>
-      {!!totalValue && <h2>Нужно поставить {Math.ceil(totalValue * 10) / 10}</h2>}
+      {!!totalValue && <h2 className={styles.TotalValue}>Нужно поставить {Math.ceil(totalValue * 10) / 10}</h2>}
     </div>
   );
 };

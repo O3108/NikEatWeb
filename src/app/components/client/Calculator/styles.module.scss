@@ -6,4 +6,10 @@
   .Autocomplete, .TextField {
     width: 100%;
   }
+
+  .TotalValue {
+    position: fixed;
+    bottom: 70px;
+    left: 1rem;
+  }
 }
