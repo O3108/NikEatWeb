@@ -78,7 +78,7 @@ const SettingsList = () => {
       <TextField
         label='Длинный на ночь'
         type='number'
-        defaultValue={newSettings.longMorning}
+        defaultValue={newSettings.longEvening}
         onChange={(e) =>
           onChangeSettings('longEvening', Number(e.target.value))}
       />
