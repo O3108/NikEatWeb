@@ -1,4 +1,16 @@
 .GlucoseList {
   display: flex;
   flex-direction: column;
+
+  .Red {
+    color: red;
+  }
+
+  .Green {
+    color: green;
+  }
+
+  .Orange {
+    color: orange;
+  }
 }

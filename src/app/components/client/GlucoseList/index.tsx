@@ -8,8 +8,28 @@ const GlucoseList = () => {
   const {glucose} = useStore()
   return (
     <div className={styles.GlucoseList}>
-      <h2>Средний день ({glucose?.day.date}) — {Math.round((glucose?.day.value || 0) * 10) / 10}</h2>
-      <h2>Средний ночь ({glucose?.night.date}) — {Math.round((glucose?.night.value || 0) * 10) / 10}</h2>
+      <h2>Средний день ({glucose?.day.date}) —{' '}
+        <span
+          className={glucose?.day.value < 6
+            ? styles.Red
+            : glucose?.day.value > 10
+              ? styles.Orange
+              : styles.Green}
+        >
+          {Math.round((glucose?.day.value || 0) * 10) / 10}
+        </span>
+      </h2>
+      <h2>Средний ночь ({glucose?.night.date}) —{' '}
+        <span
+          className={glucose?.night.value < 6
+            ? styles.Red
+            : glucose?.night.value > 8
+              ? styles.Orange
+              : styles.Green}
+        >
+          {Math.round((glucose?.night.value || 0) * 10) / 10}
+        </span>
+      </h2>
     </div>
   );
 };
