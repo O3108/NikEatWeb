@@ -5,11 +5,10 @@ import TextField from "@mui/material/TextField";
 import {Button, CircularProgress, IconButton} from "@mui/material";
 import styles from './styles.module.scss'
 import _sortBy from "lodash/sortBy";
-import {Product} from "@/src/app/page";
 import CloseIcon from '@mui/icons-material/Close';
 import PlusIcon from '@mui/icons-material/Add';
 import Alert from "@/src/app/components/client/Alert";
-import {useStore} from "@/src/app/StoreProvider";
+import {Product, useStore} from "@/src/app/StoreProvider";
 
 const ProductsList = () => {
   const {products, setProducts} = useStore()

@@ -3,10 +3,9 @@
 import React, {useCallback, useState} from 'react';
 import styles from './styles.module.scss'
 import {Button, CircularProgress} from "@mui/material";
-import {Settings} from "@/src/app/page";
 import TextField from "@mui/material/TextField";
 import Alert from "@/src/app/components/client/Alert";
-import {useStore} from "@/src/app/StoreProvider";
+import {Settings, useStore} from "@/src/app/StoreProvider";
 
 const SettingsList = () => {
   const {settings, setSettings} = useStore()
