@@ -10,9 +10,9 @@ const GlucoseList = () => {
     <div className={styles.GlucoseList}>
       <h2>Средний день ({glucose?.day.date}) —{' '}
         <span
-          className={glucose?.day.value < 6
+          className={(glucose?.day.value || 0) < 6
             ? styles.Red
-            : glucose?.day.value > 10
+            : (glucose?.day.value || 0) > 10
               ? styles.Orange
               : styles.Green}
         >
@@ -21,9 +21,9 @@ const GlucoseList = () => {
       </h2>
       <h2>Средний ночь ({glucose?.night.date}) —{' '}
         <span
-          className={glucose?.night.value < 6
+          className={(glucose?.night.value || 0) < 6
             ? styles.Red
-            : glucose?.night.value > 8
+            : (glucose?.night.value || 0) > 8
               ? styles.Orange
               : styles.Green}
         >
