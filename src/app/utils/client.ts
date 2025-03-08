@@ -3,7 +3,6 @@
 import {Glucose} from "@/src/app/StoreProvider";
 import moment from "moment/moment";
 import {GlucoseHistory} from "@/src/app/api/libre/route";
-import _isEqual from "lodash/isEqual";
 
 export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
   const newDay = glucose.day;
@@ -38,7 +37,7 @@ export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
 
   const newGlucose = {yDayGlucose: newYDayGlucose, day: newDay, night: newNight}
 
-  if (!_isEqual(glucose, newGlucose)) {
+  if (glucoseHistory) {
     await fetch(`/api/glucose`, {
       method: "PATCH",
       body: JSON.stringify(newGlucose),

@@ -61,7 +61,7 @@ const StoreProvider = ({backSettings, backProducts, backGlucose, children}: Stor
   const onGetGlucose = useCallback(async () => {
     const response = await getGlucose(glucose)
     setGlucose(response)
-  }, [])
+  }, [glucose])
 
   useEffect(() => {
     onGetGlucose()
