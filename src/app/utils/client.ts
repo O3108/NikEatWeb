@@ -26,9 +26,14 @@ export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
 
       if (newNightValue > 8) {
         newNight.highCount += 1;
+      } else {
+        newNight.highCount = 0
       }
+      
       if (newNightValue < 6) {
         newNight.lowCount += 1;
+      } else {
+        newNight.lowCount = 0;
       }
     }
   }
@@ -46,9 +51,14 @@ export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
 
       if (newDayValue > 10) {
         newDay.highCount += 1
+      } else {
+        newDay.highCount = 0
       }
+
       if (newDayValue < 6) {
         newDay.lowCount += 1
+      } else {
+        newDay.lowCount = 0
       }
     }
   }
