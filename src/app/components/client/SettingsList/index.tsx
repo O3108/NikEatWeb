@@ -4,17 +4,14 @@ import React, {useCallback, useState} from 'react';
 import styles from './styles.module.scss'
 import {Button, CircularProgress} from "@mui/material";
 import TextField from "@mui/material/TextField";
-import Alert from "@/src/app/components/client/Alert";
-import {Settings, useStore} from "@/src/app/StoreProvider";
+import {Settings, useStore} from "@/src/app/Providers/StoreProvider";
+import {useAlert} from "@/src/app/Providers/AlertProvider";
 
 const SettingsList = () => {
   const {settings, setSettings} = useStore()
+  const {setAlertData} = useAlert()
   const [newSettings, setNewSettings] = useState<{ [x in keyof Settings]?: number }>(settings)
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [alertData, setAlertData] = useState<{ isShow: boolean, severity: 'success' | 'error' }>({
-    isShow: false,
-    severity: 'success',
-  })
 
   const onChangeSettings = useCallback((name: keyof Settings, value: number) => {
     setNewSettings({...newSettings, [name]: value})
@@ -39,13 +36,6 @@ const SettingsList = () => {
 
   return (
     <div className={styles.SettingsList}>
-      <Alert
-        severity={alertData.severity}
-        isShow={alertData.isShow}
-        setIsShow={(value) => setAlertData({...alertData, isShow: value})}
-      >
-        {alertData.severity === 'success' ? 'Сохранено' : 'Ошибка сохранения'}
-      </Alert>
       <TextField
         label='Длинный на день'
         type='number'

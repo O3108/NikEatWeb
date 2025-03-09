@@ -1,6 +1,6 @@
 "use client"
 
-import {Glucose} from "@/src/app/StoreProvider";
+import {Glucose} from "@/src/app/Providers/StoreProvider";
 import moment from "moment/moment";
 import {GlucoseHistory} from "@/src/app/api/libre/route";
 
@@ -20,7 +20,16 @@ export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
       const yDayAll = glucoseHistory.data.periods[1].avgGlucose;
       const yDayCut = glucose.yDayGlucose;
       const yDayNight = (yDayAll * 3) - (yDayCut * 2)
-      newNight.value = (yDayNight + (glucoseNow * 2)) / 3
+      const newNightValue = (yDayNight + (glucoseNow * 2)) / 3
+
+      newNight.value = newNightValue;
+
+      if (newNightValue > 8) {
+        newNight.highCount += 1;
+      }
+      if (newNightValue < 6) {
+        newNight.lowCount += 1;
+      }
     }
   }
 
@@ -30,8 +39,17 @@ export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
     if (glucoseHistory) {
       newDay.date = moment().format('DD.MM.YY');
       const glucoseNow = glucoseHistory.data.periods[0].avgGlucose
-      newDay.value = ((glucoseNow * 3) - newNight.value) / 2
+      const newDayValue = ((glucoseNow * 3) - newNight.value) / 2
+
+      newDay.value = newDayValue
       newYDayGlucose = glucoseNow
+
+      if (newDayValue > 10) {
+        newDay.highCount += 1
+      }
+      if (newDayValue < 6) {
+        newDay.lowCount += 1
+      }
     }
   }
 

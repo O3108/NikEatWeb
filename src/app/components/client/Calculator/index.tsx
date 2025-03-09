@@ -8,7 +8,7 @@ import {Autocomplete, IconButton, MenuItem, Select} from "@mui/material";
 import styles from './styles.module.scss'
 import CloseIcon from '@mui/icons-material/Close';
 import moment from "moment";
-import {Product, Settings, useStore} from "@/src/app/StoreProvider";
+import {Product, Settings, useStore} from "@/src/app/Providers/StoreProvider";
 
 const Calculator = () => {
   const inputRef = useRef<HTMLInputElement | null>(null);

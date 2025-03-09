@@ -4,7 +4,8 @@ import "./globals.css";
 import Menu from "@/src/app/components/server/Menu";
 import styles from './layout.module.scss'
 import {getUrl} from "@/src/app/utils/server";
-import StoreProvider, {Glucose, Product, Settings} from "@/src/app/StoreProvider";
+import StoreProvider, {Glucose, Product, Settings} from "@/src/app/Providers/StoreProvider";
+import AlertProvider from "@/src/app/Providers/AlertProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,7 +48,9 @@ export default async function RootLayout({
     <div className={styles.Layout}>
       <div className={styles.Container}>
         <StoreProvider backSettings={settings} backProducts={products} backGlucose={glucose}>
-          {children}
+          <AlertProvider>
+            {children}
+          </AlertProvider>
         </StoreProvider>
       </div>
     </div>

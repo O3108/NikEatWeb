@@ -7,18 +7,15 @@ import styles from './styles.module.scss'
 import _sortBy from "lodash/sortBy";
 import CloseIcon from '@mui/icons-material/Close';
 import PlusIcon from '@mui/icons-material/Add';
-import Alert from "@/src/app/components/client/Alert";
-import {Product, useStore} from "@/src/app/StoreProvider";
+import {Product, useStore} from "@/src/app/Providers/StoreProvider";
+import {useAlert} from "@/src/app/Providers/AlertProvider";
 
 const ProductsList = () => {
   const {products, setProducts} = useStore()
+  const {setAlertData} = useAlert()
   const [newProducts, setNewProducts] = useState<Product[]>(_sortBy(products, "name"))
   const [newProduct, setNewProduct] = useState<Product>({name: '', value: 0})
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [alertData, setAlertData] = useState<{ isShow: boolean, severity: 'success' | 'error' }>({
-    isShow: false,
-    severity: 'success',
-  })
 
   const onChangeProduct = useCallback((product: Product, productIndex: number) => {
     setNewProducts(newProducts.map((item, index) => index === productIndex ? product : item))
@@ -59,14 +56,6 @@ const ProductsList = () => {
 
   return (
     <div className={styles.ProductsList}>
-      <Alert
-        severity={alertData.severity}
-        isShow={alertData.isShow}
-        setIsShow={(value) => setAlertData({...alertData, isShow: value})}
-      >
-        {alertData.severity === 'success' ? 'Сохранено' : 'Ошибка сохранения'}
-      </Alert>
-
       <div className={styles.Products}>
         {newProducts.map((item, index) => (
           <div key={index} className={styles.Product}>

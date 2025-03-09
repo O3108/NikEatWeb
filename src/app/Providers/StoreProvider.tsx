@@ -16,10 +16,14 @@ export type Glucose = {
   day: {
     date: string;
     value: number;
+    highCount: number;
+    lowCount: number;
   },
   night: {
     date: string;
     value: number;
+    highCount: number;
+    lowCount: number;
   }
 }
 
