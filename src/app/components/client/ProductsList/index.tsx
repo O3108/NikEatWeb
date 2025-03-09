@@ -57,6 +57,26 @@ const ProductsList = () => {
   return (
     <div className={styles.ProductsList}>
       <div className={styles.Products}>
+        <div className={styles.Product}>
+          <TextField
+            className={styles.ProductName}
+            label='Название'
+            value={newProduct.name}
+            onChange={(e) =>
+              setNewProduct({...newProduct, name: e.target.value})
+            }
+          />
+          <TextField
+            className={styles.ProductValue}
+            label='ХЕ'
+            type='number'
+            value={newProduct.value || ''}
+            onChange={(e) =>
+              setNewProduct({...newProduct, value: Number(e.target.value)})
+            }
+          />
+          <IconButton onClick={onAddProduct}>{isLoading ? <CircularProgress size={24}/> : <PlusIcon/>}</IconButton>
+        </div>
         {newProducts.map((item, index) => (
           <div key={index} className={styles.Product}>
             <TextField
@@ -81,26 +101,6 @@ const ProductsList = () => {
             </IconButton>
           </div>
         ))}
-        <div className={styles.Product}>
-          <TextField
-            className={styles.ProductName}
-            label='Название'
-            value={newProduct.name}
-            onChange={(e) =>
-              setNewProduct({...newProduct, name: e.target.value})
-            }
-          />
-          <TextField
-            className={styles.ProductValue}
-            label='ХЕ'
-            type='number'
-            value={newProduct.value || ''}
-            onChange={(e) =>
-              setNewProduct({...newProduct, value: Number(e.target.value)})
-            }
-          />
-          <IconButton onClick={onAddProduct}>{isLoading ? <CircularProgress size={24}/> : <PlusIcon/>}</IconButton>
-        </div>
       </div>
       <Button disabled={isLoading} onClick={() => onSave(newProducts)} className={styles.Button} variant='contained'>
         {isLoading ? <CircularProgress/> : 'Сохранить'}
