@@ -12,18 +12,19 @@ export type Settings = {
   "dinner": number
 }
 export type Glucose = {
-  yDayGlucose: number
   day: {
     date: string;
     value: number;
     highCount: number;
     lowCount: number;
+    totalGlucose: number;
   },
   night: {
     date: string;
     value: number;
     highCount: number;
     lowCount: number;
+    totalGlucose: number;
   }
 }
 

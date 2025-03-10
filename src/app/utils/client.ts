@@ -7,7 +7,6 @@ import {GlucoseHistory} from "@/src/app/api/libre/route";
 export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
   const newDay = glucose.day;
   const newNight = glucose.night
-  let newYDayGlucose = glucose.yDayGlucose
   let glucoseHistory: GlucoseHistory | null = null
   const hours = Number(moment().format('HH'))
 
@@ -18,18 +17,19 @@ export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
       newNight.date = moment().format('DD.MM.YY');
       const glucoseNow = glucoseHistory.data.periods[0].avgGlucose
       const yDayAll = glucoseHistory.data.periods[1].avgGlucose;
-      const yDayCut = glucose.yDayGlucose;
+      const yDayCut = newDay.totalGlucose;
       const yDayNight = (yDayAll * 3) - (yDayCut * 2)
       const newNightValue = (yDayNight + (glucoseNow * 2)) / 3
 
       newNight.value = newNightValue;
+      newNight.totalGlucose = glucoseNow;
 
       if (newNightValue > 8) {
         newNight.highCount += 1;
       } else {
         newNight.highCount = 0
       }
-      
+
       if (newNightValue < 6) {
         newNight.lowCount += 1;
       } else {
@@ -44,10 +44,10 @@ export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
     if (glucoseHistory) {
       newDay.date = moment().format('DD.MM.YY');
       const glucoseNow = glucoseHistory.data.periods[0].avgGlucose
-      const newDayValue = ((glucoseNow * 3) - newNight.value) / 2
+      const newDayValue = ((glucoseNow * 3) - newNight.totalGlucose) / 2
 
       newDay.value = newDayValue
-      newYDayGlucose = glucoseNow
+      newDay.totalGlucose = glucoseNow
 
       if (newDayValue > 10) {
         newDay.highCount += 1
@@ -63,7 +63,7 @@ export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
     }
   }
 
-  const newGlucose = {yDayGlucose: newYDayGlucose, day: newDay, night: newNight}
+  const newGlucose = {day: newDay, night: newNight}
 
   if (glucoseHistory) {
     await fetch(`/api/glucose`, {
