@@ -16,7 +16,7 @@ const GlucoseList = () => {
   const onEditGlucose = useCallback(async (value: Glucose) => {
     setIsLoading(true)
     const response = await fetch(`/api/glucose`, {
-      method: "PATCH",
+      method: "POST",
       body: JSON.stringify(value),
       headers: {'Content-Type': 'application/json'}
     });

@@ -1,9 +1,11 @@
 import {NextResponse} from "next/server";
-import {get} from "@vercel/edge-config";
+import {neon} from "@neondatabase/serverless";
+import {Product} from "@/src/app/Providers/StoreProvider";
 
 export const GET = async () => {
   try {
-    const response = await get('products');
+    const sql = neon(`${process.env.DATABASE_URL}`);
+    const response = await sql('SELECT * FROM products ORDER BY name ASC')
 
     return NextResponse.json(response);
   } catch (error: any) {
@@ -12,24 +14,42 @@ export const GET = async () => {
   }
 }
 
-export const PATCH = async (req: Request) => {
-  const products = await req.json()
+export const POST = async (req: Request) => {
+  const product: Product = await req.json()
+
   try {
-    const updateEdgeConfig = await fetch(
-      'https://api.vercel.com/v1/edge-config/ecfg_ccwwean4nieg4ymxdzve6dfxhhrs/items',
-      {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer tj9bIPCY1PhrnW3knXIgAkni`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          items: [{operation: 'update', key: 'products', value: products}],
-        }),
-      },
-    );
-    const result = await updateEdgeConfig.json();
-    return NextResponse.json(result);
+    const sql = neon(`${process.env.DATABASE_URL}`);
+    await sql('INSERT INTO products (name, value) VALUES ($1, $2)', [product.name, product.value])
+
+    return NextResponse.json({status: 200});
+  } catch (error: any) {
+    return NextResponse.json({error: error.message});
+  }
+}
+
+export const PATCH = async (req: Request) => {
+  const products: (Product & { id: number })[] = await req.json()
+
+  try {
+    const sql = neon(`${process.env.DATABASE_URL}`);
+    for (const product of products) {
+      await sql(`UPDATE products SET name = ${product.name}, value = ${product.value} WHERE ID = ${product.id}`)
+    }
+
+    return NextResponse.json({status: 200});
+  } catch (error: any) {
+    return NextResponse.json({error: error.message});
+  }
+}
+
+export const DELETE = async (req: Request) => {
+  const product: Product & { id: number } = await req.json()
+
+  try {
+    const sql = neon(`${process.env.DATABASE_URL}`);
+    await sql(`DELETE FROM products WHERE ID = ${product.id}`)
+
+    return NextResponse.json({status: 200});
   } catch (error: any) {
     return NextResponse.json({error: error.message});
   }

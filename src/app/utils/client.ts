@@ -67,7 +67,7 @@ export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
 
   if (glucoseHistory) {
     await fetch(`/api/glucose`, {
-      method: "PATCH",
+      method: "POST",
       body: JSON.stringify(newGlucose),
       headers: {'Content-Type': 'application/json'}
     });

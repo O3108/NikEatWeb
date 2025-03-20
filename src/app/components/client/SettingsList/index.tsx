@@ -20,7 +20,7 @@ const SettingsList = () => {
   const onSave = useCallback(async () => {
     setIsLoading(true)
     const response = await fetch(`/api/settings`, {
-      method: "PATCH",
+      method: "POST",
       body: JSON.stringify(newSettings),
       headers: {'Content-Type': 'application/json'}
     });
