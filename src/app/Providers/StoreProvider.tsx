@@ -3,8 +3,9 @@
 import React, {createContext, useCallback, useContext, useEffect, useState} from 'react';
 import {getGlucose} from "@/src/app/utils/client";
 
-export type Product = { name: string, value: number }
+export type Product = { name: string, value: number, id: number }
 export type Settings = {
+  "id": number;
   "longMorning": number,
   "longEvening": number,
   "breakfast": number,
@@ -13,6 +14,7 @@ export type Settings = {
 }
 export type Glucose = {
   day: {
+    id: number;
     date: string;
     value: number;
     highCount: number;
@@ -20,6 +22,7 @@ export type Glucose = {
     totalGlucose: number;
   },
   night: {
+    id: number;
     date: string;
     value: number;
     highCount: number;

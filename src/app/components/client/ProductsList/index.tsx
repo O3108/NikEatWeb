@@ -4,7 +4,6 @@ import React, {useCallback, useState} from 'react';
 import TextField from "@mui/material/TextField";
 import {Button, CircularProgress, IconButton} from "@mui/material";
 import styles from './styles.module.scss'
-import _sortBy from "lodash/sortBy";
 import CloseIcon from '@mui/icons-material/Close';
 import PlusIcon from '@mui/icons-material/Add';
 import {Product, useStore} from "@/src/app/Providers/StoreProvider";
@@ -13,8 +12,8 @@ import {useAlert} from "@/src/app/Providers/AlertProvider";
 const ProductsList = () => {
   const {products, setProducts} = useStore()
   const {setAlertData} = useAlert()
-  const [newProducts, setNewProducts] = useState<Product[]>(_sortBy(products, "name"))
-  const [newProduct, setNewProduct] = useState<Product>({name: '', value: 0})
+  const [editProducts, setEditProducts] = useState<Product[]>([])
+  const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>({name: '', value: 0})
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const getProducts = useCallback(async () => {
@@ -28,15 +27,16 @@ const ProductsList = () => {
     }
   }, [])
 
-  const onChangeProduct = useCallback((product: Product, productIndex: number) => {
-    setNewProducts(newProducts.map((item, index) => index === productIndex ? product : item))
-  }, [newProducts])
+  const onChangeProduct = useCallback((product: Product) => {
+    const tempNewProducts = editProducts.filter(item => item.id !== product.id)
+    setEditProducts([...tempNewProducts, product])
+  }, [editProducts])
 
   const onSave = useCallback(async () => {
     setIsLoading(true)
     const response = await fetch(`/api/products`, {
-      method: "POST",
-      body: JSON.stringify(value),
+      method: "PATCH",
+      body: JSON.stringify(editProducts),
       headers: {'Content-Type': 'application/json'}
     });
     const res: { status: 'ok' } | { error: string } = await response.json();
@@ -44,12 +44,11 @@ const ProductsList = () => {
     if ('error' in res) {
       setAlertData({isShow: true, severity: 'error'})
     } else {
-      setAlertData({isShow: true, severity: 'success'})
-      setProducts(value)
-      callback && callback()
+      await getProducts()
+      setEditProducts([])
     }
     setIsLoading(false)
-  }, [newProducts, products])
+  }, [editProducts, getProducts])
 
   const onDelete = useCallback(async (value: Product) => {
     setIsLoading(true)
@@ -71,7 +70,7 @@ const ProductsList = () => {
   const onAdd = useCallback(async () => {
     setIsLoading(true)
     const response = await fetch(`/api/products`, {
-      method: "POST",
+      method: "PUT",
       body: JSON.stringify(newProduct),
       headers: {'Content-Type': 'application/json'}
     });
@@ -116,7 +115,7 @@ const ProductsList = () => {
               label='Название'
               defaultValue={item.name}
               onChange={(e) =>
-                onChangeProduct({...item, name: e.target.value}, index)
+                onChangeProduct({...item, name: e.target.value})
               }
             />
             <TextField
@@ -125,7 +124,7 @@ const ProductsList = () => {
               type='number'
               defaultValue={item.value}
               onChange={(e) =>
-                onChangeProduct({...item, value: Number(e.target.value)}, index)
+                onChangeProduct({...item, value: Number(e.target.value)})
               }
             />
             <IconButton disabled={isLoading} onClick={() => onDelete(item)}>

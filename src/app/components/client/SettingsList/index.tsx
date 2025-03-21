@@ -17,10 +17,23 @@ const SettingsList = () => {
     setNewSettings({...newSettings, [name]: value})
   }, [])
 
+  const getSettings = useCallback(async () => {
+    const responseSettings = await fetch(`/api/settings`, {method: 'GET'})
+    const settings: Settings | { error: string } = await responseSettings.json();
+
+    if ('error' in settings) {
+      setAlertData({isShow: true, severity: 'error'})
+    } else {
+      setAlertData({isShow: true, severity: 'success'})
+      setSettings(settings)
+      setNewSettings(settings)
+    }
+  }, [])
+
   const onSave = useCallback(async () => {
     setIsLoading(true)
     const response = await fetch(`/api/settings`, {
-      method: "POST",
+      method: "PATCH",
       body: JSON.stringify(newSettings),
       headers: {'Content-Type': 'application/json'}
     });
@@ -28,46 +41,45 @@ const SettingsList = () => {
     if ('error' in res) {
       setAlertData({isShow: true, severity: 'error'})
     } else {
-      setAlertData({isShow: true, severity: 'success'})
-      setSettings(newSettings)
+      await getSettings()
     }
     setIsLoading(false)
-  }, [newSettings])
+  }, [newSettings, getSettings])
 
   return (
     <div className={styles.SettingsList}>
       <TextField
         label='Длинный на день'
         type='number'
-        defaultValue={newSettings.longMorning}
+        defaultValue={settings.longMorning}
         onChange={(e) =>
           onChangeSettings('longMorning', Number(e.target.value))}
       />
       <TextField
         label='Завтрак'
         type='number'
-        defaultValue={newSettings.breakfast}
+        defaultValue={settings.breakfast}
         onChange={(e) =>
           onChangeSettings('breakfast', Number(e.target.value))}
       />
       <TextField
         label='Обед'
         type='number'
-        defaultValue={newSettings.lunch}
+        defaultValue={settings.lunch}
         onChange={(e) =>
           onChangeSettings('lunch', Number(e.target.value))}
       />
       <TextField
         label='Ужин'
         type='number'
-        defaultValue={newSettings.dinner}
+        defaultValue={settings.dinner}
         onChange={(e) =>
           onChangeSettings('dinner', Number(e.target.value))}
       />
       <TextField
         label='Длинный на ночь'
         type='number'
-        defaultValue={newSettings.longEvening}
+        defaultValue={settings.longEvening}
         onChange={(e) =>
           onChangeSettings('longEvening', Number(e.target.value))}
       />

@@ -2,14 +2,12 @@ import {NextResponse} from "next/server";
 import {neon} from "@neondatabase/serverless";
 import {Settings} from "@/src/app/Providers/StoreProvider";
 
-type SERVER_SETTINGS = [{
-  "id": number,
-  "breakfast": number,
-  "dinner": number,
-  "long_evening": number,
-  "long_morning": number,
-  "lunch": number,
-}]
+type SERVER_SETTINGS = Record<"id" |
+  "breakfast" |
+  "dinner" |
+  "long_evening" |
+  "long_morning" |
+  "lunch", number>[]
 
 export const GET = async () => {
   try {
@@ -25,16 +23,18 @@ export const GET = async () => {
   }
 }
 
-export const POST = async (req: Request) => {
+export const PATCH = async (req: Request) => {
   const settings: Settings = await req.json()
 
   try {
     const sql = neon(`${process.env.DATABASE_URL}`);
-    await sql('TRUNCATE TABLE settings')
-    await sql(
-      'INSERT INTO settings (breakfast, dinner, long_evening, long_morning, lunch) VALUES ($1, $2, $3, $4, $5)',
-      [settings.breakfast, settings.dinner, settings.longEvening, settings.longMorning, settings.lunch]
-    )
+    await sql(`UPDATE settings
+               SET breakfast    = ${settings.breakfast},
+                   dinner       = ${settings.dinner},
+                   long_evening = ${settings.longEvening},
+                   long_morning = ${settings.longMorning},
+                   lunch        = ${settings.lunch}
+               WHERE ID = ${settings.id}`)
 
     return NextResponse.json({status: 200});
   } catch (error: any) {

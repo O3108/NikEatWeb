@@ -10,7 +10,7 @@ export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
   let glucoseHistory: GlucoseHistory | null = null
   const hours = Number(moment().format('HH'))
 
-  if (hours >= 8 && moment(glucose.night.date, 'DD.MM.YY').isBefore(moment(), 'day')) {
+  if (hours >= 10 && moment(glucose.night.date, 'DD.MM.YY').isBefore(moment(), 'day')) {
     const response = await fetch('/api/libre/', {method: 'POST'})
     glucoseHistory = await response.json()
     if (glucoseHistory) {
@@ -38,7 +38,7 @@ export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
     }
   }
 
-  if (hours >= 20 && moment(glucose.day.date, 'DD.MM.YY').isBefore(moment(), 'day')) {
+  if (hours >= 22 && moment(glucose.day.date, 'DD.MM.YY').isBefore(moment(), 'day')) {
     const response = await fetch('/api/libre/', {method: 'POST'})
     glucoseHistory = await response.json()
     if (glucoseHistory) {
