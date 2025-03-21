@@ -68,7 +68,7 @@ const Calculator = () => {
             <TextField
               className={styles.TextField}
               label={item.name}
-              value={item.count ? item.count : ''}
+              value={item.count}
               type='number'
               slotProps={{
                 input: {
