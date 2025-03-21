@@ -61,7 +61,7 @@ export type GlucoseHistory = {
   }
 }
 
-export const POST = async (req: Request) => {
+export const POST = async () => {
   try {
     const login = await fetch(
       'https://api.libreview.ru/auth/login',

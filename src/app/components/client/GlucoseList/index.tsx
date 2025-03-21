@@ -13,6 +13,17 @@ const GlucoseList = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
+  const getGlucose = useCallback(async () => {
+    const responseGlucose = await fetch(`/api/glucose`, {method: 'GET'})
+    const glucose: Glucose | { error: string } = await responseGlucose.json();
+    if ('error' in glucose) {
+      setAlertData({isShow: true, severity: 'error'})
+    } else {
+      setAlertData({isShow: true, severity: 'success'})
+      setGlucose(glucose)
+    }
+  }, [])
+
   const onEditGlucose = useCallback(async (value: Glucose) => {
     setIsLoading(true)
     const response = await fetch(`/api/glucose`, {
@@ -24,8 +35,7 @@ const GlucoseList = () => {
     if ('error' in res) {
       setAlertData({isShow: true, severity: 'error'})
     } else {
-      setAlertData({isShow: true, severity: 'success'})
-      setGlucose(value)
+      await getGlucose()
     }
     setIsLoading(false)
   }, [])

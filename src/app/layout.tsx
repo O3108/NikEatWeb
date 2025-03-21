@@ -40,18 +40,18 @@ export default async function RootLayout({
   const settings: Settings = await responseSettings.json();
   const glucose: Glucose = await responseAvgGlucose.json()
 
-  if ('error' in products || 'error' in settings) return null
-
   return (
     <html lang="en">
     <body className={`${geistSans.variable} ${geistMono.variable}`}>
     <div className={styles.Layout}>
       <div className={styles.Container}>
-        <StoreProvider backSettings={settings} backProducts={products} backGlucose={glucose}>
-          <AlertProvider>
-            {children}
-          </AlertProvider>
-        </StoreProvider>
+        {(!('error' in products || 'error' in settings)) &&
+            <StoreProvider backSettings={settings} backProducts={products} backGlucose={glucose}>
+              <AlertProvider>
+                {children}
+              </AlertProvider>
+            </StoreProvider>
+        }
       </div>
     </div>
     <Menu/>
