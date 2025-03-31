@@ -15,7 +15,7 @@ const SettingsList = () => {
 
   const onChangeSettings = useCallback((name: keyof Settings, value: number) => {
     setNewSettings({...newSettings, [name]: value})
-  }, [])
+  }, [newSettings])
 
   const getSettings = useCallback(async () => {
     const responseSettings = await fetch(`/api/settings`, {method: 'GET'})
