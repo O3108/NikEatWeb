@@ -19,9 +19,9 @@ const Calculator = () => {
 
   const [selectedSettings, setSelectedSettings] = useState<keyof Settings>(hours > 6 && hours < 12 ? 'breakfast' : hours < 18 ? 'lunch' : 'dinner')
 
-  const productsForOptions = _sortBy(products.filter(item => !selectedProducts.find(findItem => findItem.name === item.name), 'name'));
+  const productsForOptions = _sortBy(products?.filter(item => !selectedProducts.find(findItem => findItem.name === item.name), 'name'));
   const totalValue = selectedProducts.reduce((acc, curr) => {
-    if (settings[selectedSettings]) {
+    if (settings?.[selectedSettings]) {
       return acc += curr.value * curr.count * settings[selectedSettings]
     } else {
       return acc

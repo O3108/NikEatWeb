@@ -108,7 +108,7 @@ const ProductsList = () => {
           />
           <IconButton onClick={onAdd}>{isLoading ? <CircularProgress size={24}/> : <PlusIcon/>}</IconButton>
         </div>
-        {products.map((item, index) => (
+        {products?.map((item, index) => (
           <div key={index} className={styles.Product}>
             <TextField
               className={styles.ProductName}

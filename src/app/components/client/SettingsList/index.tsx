@@ -10,7 +10,7 @@ import {useAlert} from "@/src/app/Providers/AlertProvider";
 const SettingsList = () => {
   const {settings, setSettings} = useStore()
   const {setAlertData} = useAlert()
-  const [newSettings, setNewSettings] = useState<{ [x in keyof Settings]?: number }>(settings)
+  const [newSettings, setNewSettings] = useState<{ [x in keyof Settings]?: number } | null>(settings)
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const onChangeSettings = useCallback((name: keyof Settings, value: number) => {
@@ -51,35 +51,35 @@ const SettingsList = () => {
       <TextField
         label='Длинный на день'
         type='number'
-        defaultValue={settings.longMorning}
+        defaultValue={settings?.longMorning}
         onChange={(e) =>
           onChangeSettings('longMorning', Number(e.target.value))}
       />
       <TextField
         label='Завтрак'
         type='number'
-        defaultValue={settings.breakfast}
+        defaultValue={settings?.breakfast}
         onChange={(e) =>
           onChangeSettings('breakfast', Number(e.target.value))}
       />
       <TextField
         label='Обед'
         type='number'
-        defaultValue={settings.lunch}
+        defaultValue={settings?.lunch}
         onChange={(e) =>
           onChangeSettings('lunch', Number(e.target.value))}
       />
       <TextField
         label='Ужин'
         type='number'
-        defaultValue={settings.dinner}
+        defaultValue={settings?.dinner}
         onChange={(e) =>
           onChangeSettings('dinner', Number(e.target.value))}
       />
       <TextField
         label='Длинный на ночь'
         type='number'
-        defaultValue={settings.longEvening}
+        defaultValue={settings?.longEvening}
         onChange={(e) =>
           onChangeSettings('longEvening', Number(e.target.value))}
       />
