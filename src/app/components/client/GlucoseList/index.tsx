@@ -46,7 +46,7 @@ const GlucoseList = () => {
         <span
           className={(glucose?.day.value || 0) < 6
             ? styles.Red
-            : (glucose?.day.value || 0) > 10
+            : (glucose?.day.value || 0) > 9
               ? styles.Orange
               : styles.Green}
         >

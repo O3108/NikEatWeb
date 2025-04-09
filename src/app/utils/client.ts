@@ -49,7 +49,7 @@ export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
       newDay.value = newDayValue
       newDay.totalGlucose = glucoseNow
 
-      if (newDayValue > 10) {
+      if (newDayValue > 9) {
         newDay.highCount += 1
       } else {
         newDay.highCount = 0
