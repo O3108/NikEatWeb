@@ -98,6 +98,14 @@ export const exportToExcel = async (data: { products: Product[], settings: { [x 
   const wsProducts = XLSX.utils.aoa_to_sheet(products);
   const wsSettings = XLSX.utils.aoa_to_sheet(settings);
 
+  // Установка ширины столбцов
+  wsProducts['!cols'] = [
+    {wch: 35},
+  ];
+  wsSettings['!cols'] = [
+    {wch: 15},
+  ];
+
   // Добавляем рабочий лист в книгу
   XLSX.utils.book_append_sheet(wb, wsProducts, "Продукты");
   XLSX.utils.book_append_sheet(wb, wsSettings, "Настройки");
