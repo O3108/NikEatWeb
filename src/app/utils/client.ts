@@ -103,5 +103,5 @@ export const exportToExcel = async (data: { products: Product[], settings: { [x 
   XLSX.utils.book_append_sheet(wb, wsSettings, "Настройки");
 
   // Генерируем файл и инициируем скачивание
-  XLSX.writeFile(wb, 'документ.xlsx');
+  XLSX.writeFile(wb, 'Nik-eat-backup.xlsx');
 }
