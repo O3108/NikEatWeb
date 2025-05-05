@@ -8,9 +8,10 @@ import CloseIcon from '@mui/icons-material/Close';
 import PlusIcon from '@mui/icons-material/Add';
 import {Product, useStore} from "@/src/app/Providers/StoreProvider";
 import {useAlert} from "@/src/app/Providers/AlertProvider";
+import {exportToExcel} from "@/src/app/utils/client";
 
 const ProductsList = () => {
-  const {products, setProducts} = useStore()
+  const {products, setProducts, settings} = useStore()
   const {setAlertData} = useAlert()
   const [editProducts, setEditProducts] = useState<Product[]>([])
   const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>({name: '', value: 0})
@@ -21,9 +22,13 @@ const ProductsList = () => {
     const products: Product[] | { error: string } = await responseProducts.json();
     if ('error' in products) {
       setAlertData({isShow: true, severity: 'error'})
+
+      return null;
     } else {
       setAlertData({isShow: true, severity: 'success'})
       setProducts(products)
+
+      return products
     }
   }, [])
 
@@ -44,11 +49,15 @@ const ProductsList = () => {
     if ('error' in res) {
       setAlertData({isShow: true, severity: 'error'})
     } else {
-      await getProducts()
-      setEditProducts([])
+      const responseProducts = await getProducts()
+      setEditProducts([]);
+
+      if (responseProducts && settings) {
+        await exportToExcel({products: responseProducts, settings})
+      }
     }
     setIsLoading(false)
-  }, [editProducts, getProducts])
+  }, [editProducts, getProducts, settings])
 
   const onDelete = useCallback(async (value: Product) => {
     setIsLoading(true)

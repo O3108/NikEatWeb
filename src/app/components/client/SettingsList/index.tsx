@@ -6,9 +6,10 @@ import {Button, CircularProgress} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import {Settings, useStore} from "@/src/app/Providers/StoreProvider";
 import {useAlert} from "@/src/app/Providers/AlertProvider";
+import {exportToExcel} from "@/src/app/utils/client";
 
 const SettingsList = () => {
-  const {settings, setSettings} = useStore()
+  const {settings, setSettings, products} = useStore()
   const {setAlertData} = useAlert()
   const [newSettings, setNewSettings] = useState<{ [x in keyof Settings]?: number } | null>(settings)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -23,10 +24,14 @@ const SettingsList = () => {
 
     if ('error' in settings) {
       setAlertData({isShow: true, severity: 'error'})
+
+      return null;
     } else {
       setAlertData({isShow: true, severity: 'success'})
       setSettings(settings)
       setNewSettings(settings)
+
+      return settings;
     }
   }, [])
 
@@ -41,10 +46,14 @@ const SettingsList = () => {
     if ('error' in res) {
       setAlertData({isShow: true, severity: 'error'})
     } else {
-      await getSettings()
+      const responseSettings = await getSettings();
+      
+      if (responseSettings && products) {
+        await exportToExcel({products, settings: responseSettings})
+      }
     }
     setIsLoading(false)
-  }, [newSettings, getSettings])
+  }, [newSettings, getSettings, products])
 
   return (
     <div className={styles.SettingsList}>

@@ -1,8 +1,9 @@
 "use client"
 
-import {Glucose} from "@/src/app/Providers/StoreProvider";
+import {Glucose, Product, Settings} from "@/src/app/Providers/StoreProvider";
 import moment from "moment/moment";
 import {GlucoseHistory} from "@/src/app/api/libre/route";
+import * as XLSX from 'xlsx';
 
 export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
   const newDay = glucose.day;
@@ -74,4 +75,33 @@ export const getGlucose = async (glucose: Glucose): Promise<Glucose> => {
   }
 
   return newGlucose
+}
+
+export const exportToExcel = async (data: { products: Product[], settings: { [x in keyof Settings]?: number } }) => {
+  // Создаем новую книгу
+  const wb = XLSX.utils.book_new();
+
+  // Создаем данные для рабочего листа
+  const products = [
+    ['Название', 'ХЕ'],
+    ...data.products.map(item => [item.name, item.value])
+  ];
+  const settings = [
+    ['Длинный на день', data.settings.longMorning],
+    ['Завтрак', data.settings.breakfast],
+    ['Обед', data.settings.lunch],
+    ['Ужин', data.settings.dinner],
+    ['Длинный на ночь', data.settings.longEvening]
+  ]
+
+  // Преобразуем данные в рабочий лист
+  const wsProducts = XLSX.utils.aoa_to_sheet(products);
+  const wsSettings = XLSX.utils.aoa_to_sheet(settings);
+
+  // Добавляем рабочий лист в книгу
+  XLSX.utils.book_append_sheet(wb, wsProducts, "Продукты");
+  XLSX.utils.book_append_sheet(wb, wsSettings, "Настройки");
+
+  // Генерируем файл и инициируем скачивание
+  XLSX.writeFile(wb, 'документ.xlsx');
 }
