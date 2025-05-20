@@ -18,6 +18,7 @@ const Calculator = () => {
   const hours = Number(moment().format('HH'))
 
   const [selectedSettings, setSelectedSettings] = useState<keyof Settings>(hours > 6 && hours < 12 ? 'breakfast' : hours < 18 ? 'lunch' : 'dinner')
+  const [currentGlucose, setCurrentGlucose] = useState<number>(0);
 
   const productsForOptions = _sortBy(products?.filter(item => !selectedProducts.find(findItem => findItem.name === item.name), 'name'));
   const totalValue = selectedProducts.reduce((acc, curr) => {
@@ -26,6 +27,9 @@ const Calculator = () => {
     } else {
       return acc
     }
+  }, 0) + (currentGlucose ? (currentGlucose > 7 ? (currentGlucose - 7) / 3 : 0) : 0)
+  const totalXE = selectedProducts.reduce((acc, curr) => {
+    return acc += curr.value * curr.count;
   }, 0)
 
   const onChangeProduct = useCallback((product: (Product & { count: number }), productIndex: number) => {
@@ -39,6 +43,14 @@ const Calculator = () => {
 
   return (
     <div className={styles.Calculator}>
+      <TextField
+        className={styles.TextField}
+        label='Сахар'
+        value={currentGlucose || ''}
+        type='number'
+        onChange={(e) =>
+          setCurrentGlucose(Number(e.target.value))}
+      />
       <Select
         value={selectedSettings}
         onChange={(e) =>
@@ -84,7 +96,11 @@ const Calculator = () => {
           </div>
         ))}
       </div>
-      {!!totalValue && <h2 className={styles.TotalValue}>Нужно поставить {Math.ceil(totalValue * 10) / 10}</h2>}
+      {!!totalValue &&
+          <div className={styles.TotalValue}>На <b>{totalXE} ХЕ</b> нужно
+            поставить <b>{totalValue > 0 ? Math.ceil(totalValue) : 0}</b>
+          </div>
+      }
     </div>
   );
 };

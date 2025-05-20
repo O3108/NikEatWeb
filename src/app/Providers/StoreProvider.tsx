@@ -32,6 +32,12 @@ export type Glucose = {
   }
 }
 
+export type ActiveInsulin = {
+  id: number;
+  date: string;
+  value: number;
+}
+
 type UseStoreProps = {
   settings: { [x in keyof Settings]?: number } | null
   setSettings: (settings: { [x in keyof Settings]?: number }) => void
