@@ -44,7 +44,9 @@ type UseStoreProps = {
   products: Product[] | null
   setProducts: (products: Product[]) => void
   glucose: Glucose | null,
-  setGlucose: (value: Glucose) => void
+  setGlucose: (value: Glucose) => void,
+  activeInsulin: ActiveInsulin | null,
+  setActiveInsulin: (value: ActiveInsulin) => void
 };
 
 const StoreContext = createContext<UseStoreProps>({
@@ -56,6 +58,9 @@ const StoreContext = createContext<UseStoreProps>({
   },
   glucose: null,
   setGlucose: () => {
+  },
+  activeInsulin: null,
+  setActiveInsulin: () => {
   }
 });
 
@@ -69,22 +74,26 @@ const StoreProvider = ({children}: StoreProviderProps) => {
   const [settings, setSettings] = useState<{ [x in keyof Settings]?: number } | null>(null)
   const [products, setProducts] = useState<Product[] | null>(null)
   const [glucose, setGlucose] = useState<Glucose | null>(null)
+  const [activeInsulin, setActiveInsulin] = useState<ActiveInsulin | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
   useEffect(() => {
     const getData = async () => {
       setIsLoading(true);
-      const [responseProducts, responseSettings, responseAvgGlucose] = await Promise.all(
+      const [responseProducts, responseSettings, responseAvgGlucose, responseActiveInsulin] = await Promise.all(
         [
           fetch(`/api/products`, {method: 'GET'}),
           fetch(`/api/settings`, {method: 'GET'}),
           fetch(`/api/glucose`, {method: 'GET'}),
+          fetch(`/api/active-insulin`, {method: 'GET'}),
         ]
       );
 
       const products: Product[] | { error: string } = await responseProducts.json();
       const settings: Settings | { error: string } = await responseSettings.json();
-      const glucose: Glucose | { error: string } = await responseAvgGlucose.json()
+      const glucose: Glucose | { error: string } = await responseAvgGlucose.json();
+      const activeInsulin: ActiveInsulin | { error: string } = await responseActiveInsulin.json()
+
 
       if (!('error' in products)) {
         setProducts(products);
@@ -96,6 +105,9 @@ const StoreProvider = ({children}: StoreProviderProps) => {
         const response = await getGlucose(glucose)
         setGlucose(response)
       }
+      if (!('error' in activeInsulin)) {
+        setActiveInsulin(activeInsulin);
+      }
       setIsLoading(false)
     }
 
@@ -105,7 +117,8 @@ const StoreProvider = ({children}: StoreProviderProps) => {
   if (isLoading) return <Loading/>
 
   return (
-    <StoreContext.Provider value={{settings, setSettings, products, setProducts, glucose, setGlucose}}>
+    <StoreContext.Provider
+      value={{settings, setSettings, products, setProducts, glucose, setGlucose, activeInsulin, setActiveInsulin}}>
       {children}
     </StoreContext.Provider>
   );

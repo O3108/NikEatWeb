@@ -4,33 +4,47 @@ import React, {useCallback, useRef, useState} from 'react';
 import TextField from "@mui/material/TextField";
 import _sortBy from 'lodash/sortBy'
 
-import {Autocomplete, IconButton, MenuItem, Select} from "@mui/material";
+import {Autocomplete, Button, CircularProgress, IconButton, MenuItem, Select} from "@mui/material";
 import styles from './styles.module.scss'
 import CloseIcon from '@mui/icons-material/Close';
 import moment from "moment";
-import {Product, Settings, useStore} from "@/src/app/Providers/StoreProvider";
+import {ActiveInsulin, Product, Settings, useStore} from "@/src/app/Providers/StoreProvider";
+import {useAlert} from "@/src/app/Providers/AlertProvider";
 
 const Calculator = () => {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const {products, settings} = useStore()
-  const [selectedProducts, setSelectedProducts] = useState<(Product & { count: number })[]>([]);
+  const {products, settings, activeInsulin, setActiveInsulin} = useStore()
+  const {setAlertData} = useAlert()
 
   const hours = Number(moment().format('HH'))
 
   const [selectedSettings, setSelectedSettings] = useState<keyof Settings>(hours > 6 && hours < 12 ? 'breakfast' : hours < 18 ? 'lunch' : 'dinner')
   const [currentGlucose, setCurrentGlucose] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [selectedProducts, setSelectedProducts] = useState<(Product & { count: number })[]>([]);
 
   const productsForOptions = _sortBy(products?.filter(item => !selectedProducts.find(findItem => findItem.name === item.name), 'name'));
-  const totalValue = selectedProducts.reduce((acc, curr) => {
+
+  const lefTimeActiveInsulin =
+    activeInsulin && moment().diff(moment(activeInsulin.date, 'DD.MM.YY HH:mm'), 'hours') < 3
+      ? 180 - moment().diff(moment(activeInsulin.date, 'DD.MM.YY HH:mm'), 'minutes')
+      : 0;
+
+  const newActiveInsulin = lefTimeActiveInsulin && activeInsulin
+    ? Math.round(activeInsulin.value / 180 * lefTimeActiveInsulin * 10) / 10
+    : 0
+
+  const totalValue = Math.ceil(selectedProducts.reduce((acc, curr) => {
     if (settings?.[selectedSettings]) {
       return acc += curr.value * curr.count * settings[selectedSettings]
     } else {
       return acc
     }
-  }, 0) + (currentGlucose ? (currentGlucose > 7 ? (currentGlucose - 7) / 3 : 0) : 0)
-  const totalXE = selectedProducts.reduce((acc, curr) => {
+  }, 0) + (currentGlucose ? (currentGlucose > 7 ? (currentGlucose - 7) / 3 : 0) - newActiveInsulin : 0))
+
+  const totalXE = Math.round(selectedProducts.reduce((acc, curr) => {
     return acc += curr.value * curr.count;
-  }, 0)
+  }, 0) * 10) / 10;
 
   const onChangeProduct = useCallback((product: (Product & { count: number }), productIndex: number) => {
     setSelectedProducts(selectedProducts.map((item, index) =>
@@ -40,6 +54,38 @@ const Calculator = () => {
   const onDeleteProduct = useCallback((productIndex: number) => {
     setSelectedProducts(selectedProducts.filter((item, index) => index !== productIndex))
   }, [selectedProducts]);
+
+  const getActiveInsulin = useCallback(async () => {
+    const responseActiveInsulin = await fetch(`/api/active-insulin`, {method: 'GET'})
+    const activeInsulin: ActiveInsulin | { error: string } = await responseActiveInsulin.json();
+
+    if ('error' in activeInsulin) {
+      setAlertData({isShow: true, severity: 'error'})
+    } else {
+      setAlertData({isShow: true, severity: 'success'})
+      setActiveInsulin(activeInsulin)
+      setSelectedProducts([]);
+      setCurrentGlucose(0)
+    }
+  }, [])
+
+  const onSave = useCallback(async () => {
+    setIsLoading(true)
+    if (activeInsulin) {
+      const response = await fetch(`/api/active-insulin`, {
+        method: "PATCH",
+        body: JSON.stringify({id: activeInsulin.id, date: moment().format('DD.MM.YY HH:mm'), value: totalValue}),
+        headers: {'Content-Type': 'application/json'}
+      });
+      const res: { status: 'ok' } | { error: string } = await response.json();
+      if ('error' in res) {
+        setAlertData({isShow: true, severity: 'error'})
+      } else {
+        await getActiveInsulin();
+      }
+    }
+    setIsLoading(false)
+  }, [activeInsulin, totalValue, getActiveInsulin])
 
   return (
     <div className={styles.Calculator}>
@@ -51,6 +97,7 @@ const Calculator = () => {
         onChange={(e) =>
           setCurrentGlucose(Number(e.target.value))}
       />
+      Активный инсулин {newActiveInsulin}
       <Select
         value={selectedSettings}
         onChange={(e) =>
@@ -96,11 +143,27 @@ const Calculator = () => {
           </div>
         ))}
       </div>
-      {!!totalValue &&
-          <div className={styles.TotalValue}>На <b>{totalXE} ХЕ</b> нужно
-            поставить <b>{totalValue > 0 ? Math.ceil(totalValue) : 0}</b>
-          </div>
-      }
+
+      <Button
+        disabled={isLoading || !totalValue || totalValue < 0}
+        onClick={onSave} variant='contained'
+        className={styles.Button}
+      >
+        {isLoading
+          ? <CircularProgress/>
+          : (!!totalValue || !!currentGlucose) &&
+          totalValue > 0
+            ?
+            <>
+              {!!totalXE && <>На <b>{totalXE} ХЕ</b></>} Нужно
+              поставить <b>{totalValue > 0 ? totalValue : 0}</b>
+            </>
+            :
+            <>
+              Не нужно ставить
+            </>
+        }
+      </Button>
     </div>
   );
 };
