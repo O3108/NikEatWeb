@@ -7,10 +7,14 @@
     width: 100%;
   }
 
-  .TotalValue {
+  .Button {
     position: fixed;
-    font-size: 25px;
     bottom: 70px;
     left: 1rem;
+    width: calc(100vw - 2rem);
+    height: 50px;
+    z-index: 1;
+    gap: 5px;
+    font-size: 17px;
   }
 }
