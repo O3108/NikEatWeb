@@ -3,6 +3,8 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import {getGlucose} from "@/src/app/utils/client";
 import Loading from "@/src/app/loading";
+import ImportFile from "@/src/app/components/client/ImportFile";
+import moment from "moment";
 
 export type Product = { name: string, value: number, id: number }
 export type Settings = {
@@ -46,7 +48,8 @@ type UseStoreProps = {
   glucose: Glucose | null,
   setGlucose: (value: Glucose) => void,
   activeInsulin: ActiveInsulin | null,
-  setActiveInsulin: (value: ActiveInsulin) => void
+  setActiveInsulin: (value: ActiveInsulin) => void,
+  isAccessEdit: boolean,
 };
 
 const StoreContext = createContext<UseStoreProps>({
@@ -61,7 +64,8 @@ const StoreContext = createContext<UseStoreProps>({
   },
   activeInsulin: null,
   setActiveInsulin: () => {
-  }
+  },
+  isAccessEdit: true,
 });
 
 export const useStore = () => useContext(StoreContext);
@@ -76,37 +80,46 @@ const StoreProvider = ({children}: StoreProviderProps) => {
   const [glucose, setGlucose] = useState<Glucose | null>(null)
   const [activeInsulin, setActiveInsulin] = useState<ActiveInsulin | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isAccessEdit, setIsAccessEdit] = useState<boolean>(true)
 
   useEffect(() => {
     const getData = async () => {
       setIsLoading(true);
-      const [responseProducts, responseSettings, responseAvgGlucose, responseActiveInsulin] = await Promise.all(
-        [
-          fetch(`/api/products`, {method: 'GET'}),
-          fetch(`/api/settings`, {method: 'GET'}),
-          fetch(`/api/glucose`, {method: 'GET'}),
-          fetch(`/api/active-insulin`, {method: 'GET'}),
-        ]
-      );
+      try {
+        const [responseProducts, responseSettings, responseAvgGlucose, responseActiveInsulin] = await Promise.all(
+          [
+            fetch(`/api/products`, {method: 'GET'}),
+            fetch(`/api/settings`, {method: 'GET'}),
+            fetch(`/api/glucose`, {method: 'GET'}),
+            fetch(`/api/active-insulin`, {method: 'GET'}),
+          ]
+        );
 
-      const products: Product[] | { error: string } = await responseProducts.json();
-      const settings: Settings | { error: string } = await responseSettings.json();
-      const glucose: Glucose | { error: string } = await responseAvgGlucose.json();
-      const activeInsulin: ActiveInsulin | { error: string } = await responseActiveInsulin.json()
+        const products: Product[] | { error: string } = await responseProducts.json();
+        const settings: Settings | { error: string } = await responseSettings.json();
+        const glucose: Glucose | { error: string } = await responseAvgGlucose.json();
+        const activeInsulin: ActiveInsulin | { error: string } = await responseActiveInsulin.json()
+        const localeActiveInsuline = JSON.parse(localStorage.getItem('activeInsulin') || 'null') as ActiveInsulin | null;
 
-
-      if (!('error' in products)) {
-        setProducts(products);
-      }
-      if (!('error' in settings)) {
-        setSettings(settings);
-      }
-      if (!('error' in glucose)) {
-        const response = await getGlucose(glucose)
-        setGlucose(response)
-      }
-      if (!('error' in activeInsulin)) {
-        setActiveInsulin(activeInsulin);
+        if (!('error' in products)) {
+          setProducts(products);
+        }
+        if (!('error' in settings)) {
+          setSettings(settings);
+        }
+        if (!('error' in glucose)) {
+          const response = await getGlucose(glucose)
+          setGlucose(response)
+        }
+        if (!('error' in activeInsulin)) {
+          if (localeActiveInsuline && moment(localeActiveInsuline.date, 'DD.MM.YY HH:mm').isAfter(moment(activeInsulin.date, 'DD.MM.YY HH:mm'))) {
+            setActiveInsulin(localeActiveInsuline)
+          } else {
+            setActiveInsulin(activeInsulin);
+          }
+        }
+      } catch (e) {
+        setIsAccessEdit(false)
       }
       setIsLoading(false)
     }
@@ -114,11 +127,21 @@ const StoreProvider = ({children}: StoreProviderProps) => {
     getData();
   }, []);
 
-  if (isLoading) return <Loading/>
-
   return (
     <StoreContext.Provider
-      value={{settings, setSettings, products, setProducts, glucose, setGlucose, activeInsulin, setActiveInsulin}}>
+      value={{
+        settings,
+        setSettings,
+        products,
+        setProducts,
+        glucose,
+        setGlucose,
+        activeInsulin,
+        setActiveInsulin,
+        isAccessEdit
+      }}>
+      {isLoading && <Loading/>}
+      {!isLoading && !settings && <ImportFile/>}
       {children}
     </StoreContext.Provider>
   );

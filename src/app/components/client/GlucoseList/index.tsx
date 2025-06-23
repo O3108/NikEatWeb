@@ -8,7 +8,7 @@ import {CircularProgress, IconButton} from "@mui/material";
 import {useAlert} from "@/src/app/Providers/AlertProvider";
 
 const GlucoseList = () => {
-  const {glucose, setGlucose} = useStore()
+  const {glucose, setGlucose, isAccessEdit} = useStore()
   const {setAlertData} = useAlert()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -67,6 +67,7 @@ const GlucoseList = () => {
       <h2 className={styles.ButtonItem}>
         Высоких дней — {glucose?.day.highCount}
         <IconButton
+          disabled={!isAccessEdit}
           onClick={() =>
             glucose && onEditGlucose({...glucose, day: {...glucose.day, highCount: 0}})
           }
@@ -77,6 +78,7 @@ const GlucoseList = () => {
       <h2 className={styles.ButtonItem}>
         Низких дней — {glucose?.day.lowCount}
         <IconButton
+          disabled={!isAccessEdit}
           onClick={() =>
             glucose && onEditGlucose({...glucose, day: {...glucose.day, lowCount: 0}})
           }
@@ -87,6 +89,7 @@ const GlucoseList = () => {
       <h2 className={styles.ButtonItem}>
         Высоких ночей — {glucose?.night.highCount}
         <IconButton
+          disabled={!isAccessEdit}
           onClick={() =>
             glucose && onEditGlucose({...glucose, night: {...glucose.night, highCount: 0}})
           }
@@ -97,6 +100,7 @@ const GlucoseList = () => {
       <h2 className={styles.ButtonItem}>
         Низких ночей — {glucose?.night.lowCount}
         <IconButton
+          disabled={!isAccessEdit}
           onClick={() =>
             glucose && onEditGlucose({...glucose, night: {...glucose.night, lowCount: 0}})
           }

@@ -9,7 +9,7 @@ import {useAlert} from "@/src/app/Providers/AlertProvider";
 import {exportToExcel} from "@/src/app/utils/client";
 
 const SettingsList = () => {
-  const {settings, setSettings, products} = useStore()
+  const {settings, setSettings, products, glucose, isAccessEdit} = useStore()
   const {setAlertData} = useAlert()
   const [newSettings, setNewSettings] = useState<{ [x in keyof Settings]?: number } | null>(settings)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -47,9 +47,9 @@ const SettingsList = () => {
       setAlertData({isShow: true, severity: 'error'})
     } else {
       const responseSettings = await getSettings();
-      
+
       if (responseSettings && products) {
-        await exportToExcel({products, settings: responseSettings})
+        await exportToExcel({products, settings: responseSettings, glucose})
       }
     }
     setIsLoading(false)
@@ -92,7 +92,7 @@ const SettingsList = () => {
         onChange={(e) =>
           onChangeSettings('longEvening', Number(e.target.value))}
       />
-      <Button disabled={isLoading} onClick={onSave} variant='contained' className={styles.Button}>
+      <Button disabled={isLoading || !isAccessEdit} onClick={onSave} variant='contained' className={styles.Button}>
         {isLoading ? <CircularProgress/> : 'Сохранить'}
       </Button>
     </div>

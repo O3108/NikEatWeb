@@ -11,7 +11,7 @@ import {useAlert} from "@/src/app/Providers/AlertProvider";
 import {exportToExcel} from "@/src/app/utils/client";
 
 const ProductsList = () => {
-  const {products, setProducts, settings} = useStore()
+  const {products, setProducts, settings, glucose, isAccessEdit} = useStore()
   const {setAlertData} = useAlert()
   const [editProducts, setEditProducts] = useState<Product[]>([])
   const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>({name: '', value: 0})
@@ -53,7 +53,7 @@ const ProductsList = () => {
       setEditProducts([]);
 
       if (responseProducts && settings) {
-        await exportToExcel({products: responseProducts, settings})
+        await exportToExcel({products: responseProducts, settings, glucose})
       }
     }
     setIsLoading(false)
@@ -115,7 +115,8 @@ const ProductsList = () => {
               setNewProduct({...newProduct, value: Number(e.target.value)})
             }
           />
-          <IconButton onClick={onAdd}>{isLoading ? <CircularProgress size={24}/> : <PlusIcon/>}</IconButton>
+          <IconButton disabled={isLoading || !isAccessEdit} onClick={onAdd}>{isLoading ? <CircularProgress size={24}/> :
+            <PlusIcon/>}</IconButton>
         </div>
         {products?.map((item, index) => (
           <div key={index} className={styles.Product}>
@@ -136,13 +137,13 @@ const ProductsList = () => {
                 onChangeProduct({...item, value: Number(e.target.value)})
               }
             />
-            <IconButton disabled={isLoading} onClick={() => onDelete(item)}>
+            <IconButton disabled={isLoading || !isAccessEdit} onClick={() => onDelete(item)}>
               {isLoading ? <CircularProgress size={24}/> : <CloseIcon/>}
             </IconButton>
           </div>
         ))}
       </div>
-      <Button disabled={isLoading} onClick={onSave} className={styles.Button} variant='contained'>
+      <Button disabled={isLoading || !isAccessEdit} onClick={onSave} className={styles.Button} variant='contained'>
         {isLoading ? <CircularProgress/> : 'Сохранить'}
       </Button>
     </div>

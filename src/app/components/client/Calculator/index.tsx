@@ -72,14 +72,19 @@ const Calculator = () => {
   const onSave = useCallback(async () => {
     setIsLoading(true)
     if (activeInsulin) {
+      const newActiveInsulin = {id: activeInsulin.id, date: moment().format('DD.MM.YY HH:mm'), value: totalValue}
+      localStorage.setItem('activeInsulin', JSON.stringify(newActiveInsulin));
       const response = await fetch(`/api/active-insulin`, {
         method: "PATCH",
-        body: JSON.stringify({id: activeInsulin.id, date: moment().format('DD.MM.YY HH:mm'), value: totalValue}),
+        body: JSON.stringify(newActiveInsulin),
         headers: {'Content-Type': 'application/json'}
       });
       const res: { status: 'ok' } | { error: string } = await response.json();
       if ('error' in res) {
         setAlertData({isShow: true, severity: 'error'})
+        setActiveInsulin(newActiveInsulin)
+        setSelectedProducts([]);
+        setCurrentGlucose(0)
       } else {
         await getActiveInsulin();
       }
