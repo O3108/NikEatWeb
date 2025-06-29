@@ -11,6 +11,9 @@ import moment from "moment";
 import {ActiveInsulin, Product, Settings, useStore} from "@/src/app/Providers/StoreProvider";
 import {useAlert} from "@/src/app/Providers/AlertProvider";
 
+const ACTIVE_MINUTES = 120;
+const ACTIVE_HOURS = 2
+
 const Calculator = () => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const {products, settings, activeInsulin, setActiveInsulin} = useStore()
@@ -26,12 +29,12 @@ const Calculator = () => {
   const productsForOptions = _sortBy(products?.filter(item => !selectedProducts.find(findItem => findItem.name === item.name), 'name'));
 
   const lefTimeActiveInsulin =
-    activeInsulin && moment().diff(moment(activeInsulin.date, 'DD.MM.YY HH:mm'), 'hours') < 3
-      ? 180 - moment().diff(moment(activeInsulin.date, 'DD.MM.YY HH:mm'), 'minutes')
+    activeInsulin && moment().diff(moment(activeInsulin.date, 'DD.MM.YY HH:mm'), 'hours') < ACTIVE_HOURS
+      ? ACTIVE_MINUTES - moment().diff(moment(activeInsulin.date, 'DD.MM.YY HH:mm'), 'minutes')
       : 0;
 
   const newActiveInsulin = lefTimeActiveInsulin && activeInsulin
-    ? Math.round(activeInsulin.value / 180 * lefTimeActiveInsulin * 10) / 10
+    ? Math.round(activeInsulin.value / ACTIVE_MINUTES * lefTimeActiveInsulin * 10) / 10
     : 0
 
   const totalValue = Math.ceil(selectedProducts.reduce((acc, curr) => {
