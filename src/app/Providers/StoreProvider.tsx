@@ -81,6 +81,7 @@ const StoreProvider = ({children}: StoreProviderProps) => {
   const [activeInsulin, setActiveInsulin] = useState<ActiveInsulin | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isAccessEdit, setIsAccessEdit] = useState<boolean>(true)
+  const controller = new AbortController();
 
   useEffect(() => {
     const getData = async () => {
@@ -88,10 +89,10 @@ const StoreProvider = ({children}: StoreProviderProps) => {
       try {
         const [responseProducts, responseSettings, responseAvgGlucose, responseActiveInsulin] = await Promise.all(
           [
-            fetch(`/api/products`, {method: 'GET'}),
-            fetch(`/api/settings`, {method: 'GET'}),
-            fetch(`/api/glucose`, {method: 'GET'}),
-            fetch(`/api/active-insulin`, {method: 'GET'}),
+            fetch(`/api/products`, {method: 'GET', signal: controller.signal}),
+            fetch(`/api/settings`, {method: 'GET', signal: controller.signal}),
+            fetch(`/api/glucose`, {method: 'GET', signal: controller.signal}),
+            fetch(`/api/active-insulin`, {method: 'GET', signal: controller.signal}),
           ]
         );
 
@@ -141,7 +142,7 @@ const StoreProvider = ({children}: StoreProviderProps) => {
         isAccessEdit
       }}>
       {isLoading && <Loading/>}
-      {!isLoading && !settings && <ImportFile/>}
+      {isLoading && <ImportFile controller={controller}/>}
       {children}
     </StoreContext.Provider>
   );

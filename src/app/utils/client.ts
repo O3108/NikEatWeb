@@ -138,69 +138,73 @@ export const importFromExcel = (file: File, setData: (data: {
   products: Product[],
   glucose: Glucose,
   settings: Settings
-}) => void) => {
+} | null) => void) => {
   const reader = new FileReader();
 
   reader.onload = (e) => {
-    const arrayBuffer = e.target?.result; // Получаем ArrayBuffer
-    const workbook = XLSX.read(arrayBuffer, {type: 'array'}); // Указываем тип 'array'
-    const productsWorksheet = workbook.Sheets[SHEET_NAMES.PRODUCTS];
-    const settingsWorksheet = workbook.Sheets[SHEET_NAMES.SETTINGS];
-    const glucoseWorksheet = workbook.Sheets[SHEET_NAMES.GLUCOSE];
+    try {
+      const arrayBuffer = e.target?.result; // Получаем ArrayBuffer
+      const workbook = XLSX.read(arrayBuffer, {type: 'array'}); // Указываем тип 'array'
+      const productsWorksheet = workbook.Sheets[SHEET_NAMES.PRODUCTS];
+      const settingsWorksheet = workbook.Sheets[SHEET_NAMES.SETTINGS];
+      const glucoseWorksheet = workbook.Sheets[SHEET_NAMES.GLUCOSE];
 
-    const products = XLSX.utils.sheet_to_json(productsWorksheet) as Product[];
-    const settings = (XLSX.utils.sheet_to_json(settingsWorksheet, {header: 1}) as [string, string, number][]).reduce<{
-      id: number,
-      longMorning: number,
-      longEvening: number,
-      breakfast: number,
-      lunch: number,
-      dinner: number
-    }>((acc, curr) => {
-      return {...acc, [curr[0]]: curr[2]}
-    }, {
-      id: 0, longMorning: 0, longEvening: 0, breakfast: 0, lunch: 0,
-      dinner: 0
-    });
-    const glucose = (XLSX.utils.sheet_to_json(glucoseWorksheet, {header: 1}) as ['day' | 'night', string, number | string][]).reduce<{
-      day: {
+      const products = XLSX.utils.sheet_to_json(productsWorksheet) as Product[];
+      const settings = (XLSX.utils.sheet_to_json(settingsWorksheet, {header: 1}) as [string, string, number][]).reduce<{
         id: number,
-        date: string,
-        value: number,
-        highCount: number,
-        lowCount: number,
-        totalGlucose: number
-      },
-      night: {
-        id: number,
-        date: string,
-        value: number,
-        highCount: number,
-        lowCount: number,
-        totalGlucose: number
-      },
-    }>((acc, curr) => {
-      return {...acc, [curr[0]]: {...acc[curr[0]], [curr[1]]: curr[2]}}
-    }, {
-      day: {
-        id: 0,
-        date: '',
-        value: 0,
-        highCount: 0,
-        lowCount: 0,
-        totalGlucose: 0
-      },
-      night: {
-        id: 0,
-        date: '',
-        value: 0,
-        highCount: 0,
-        lowCount: 0,
-        totalGlucose: 0
-      }
-    });
+        longMorning: number,
+        longEvening: number,
+        breakfast: number,
+        lunch: number,
+        dinner: number
+      }>((acc, curr) => {
+        return {...acc, [curr[0]]: curr[2]}
+      }, {
+        id: 0, longMorning: 0, longEvening: 0, breakfast: 0, lunch: 0,
+        dinner: 0
+      });
+      const glucose = (XLSX.utils.sheet_to_json(glucoseWorksheet, {header: 1}) as ['day' | 'night', string, number | string][]).reduce<{
+        day: {
+          id: number,
+          date: string,
+          value: number,
+          highCount: number,
+          lowCount: number,
+          totalGlucose: number
+        },
+        night: {
+          id: number,
+          date: string,
+          value: number,
+          highCount: number,
+          lowCount: number,
+          totalGlucose: number
+        },
+      }>((acc, curr) => {
+        return {...acc, [curr[0]]: {...acc[curr[0]], [curr[1]]: curr[2]}}
+      }, {
+        day: {
+          id: 0,
+          date: '',
+          value: 0,
+          highCount: 0,
+          lowCount: 0,
+          totalGlucose: 0
+        },
+        night: {
+          id: 0,
+          date: '',
+          value: 0,
+          highCount: 0,
+          lowCount: 0,
+          totalGlucose: 0
+        }
+      });
 
-    setData({products, settings, glucose})
+      setData({products, settings, glucose})
+    } catch (e) {
+      setData(null)
+    }
   };
 
   reader.readAsArrayBuffer(file);

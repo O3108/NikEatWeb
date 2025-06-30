@@ -4,15 +4,22 @@ import styles from './styles.module.scss'
 import {Button} from "@mui/material";
 import {useStore} from "@/src/app/Providers/StoreProvider";
 
-const ImportFile = () => {
+type ImportFileProps = {
+  controller: AbortController
+}
+
+const ImportFile = ({controller}: ImportFileProps) => {
   const {setSettings, setGlucose, setProducts, setActiveInsulin} = useStore()
 
   const getDataFromFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       importFromExcel(e.target.files[0], (data) => {
-        setProducts(data.products);
-        setGlucose(data.glucose);
-        setSettings(data.settings);
+        if (data) {
+          setProducts(data.products);
+          setGlucose(data.glucose);
+          setSettings(data.settings);
+          controller.abort();
+        }
       })
       const activeInsuline = localStorage.getItem('activeInsulin');
       if (activeInsuline) {
@@ -24,7 +31,7 @@ const ImportFile = () => {
 
   return (
     <div className={styles.ImportFile}>
-      <Button variant='contained' component="label">
+      <Button className={styles.Button} variant='contained' component="label">
         Загрузить файл с данными
         <input
           type="file"
