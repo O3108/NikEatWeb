@@ -32,6 +32,9 @@ const Calculator = () => {
     activeInsulin && moment().diff(moment(activeInsulin.date, 'DD.MM.YY HH:mm'), 'hours') < ACTIVE_HOURS
       ? ACTIVE_MINUTES - moment().diff(moment(activeInsulin.date, 'DD.MM.YY HH:mm'), 'minutes')
       : 0;
+  const passedTimeActiveInsulin = activeInsulin
+    ? moment().diff(moment(activeInsulin.date, 'DD.MM.YY HH:mm'), 'minutes')
+    : 0;
 
   const newActiveInsulin = lefTimeActiveInsulin && activeInsulin
     ? Math.round(activeInsulin.value / ACTIVE_MINUTES * lefTimeActiveInsulin * 10) / 10
@@ -94,7 +97,7 @@ const Calculator = () => {
     }
     setIsLoading(false)
   }, [activeInsulin, totalValue, getActiveInsulin])
-  
+
   return (
     <div className={styles.Calculator}>
       <TextField
@@ -106,7 +109,10 @@ const Calculator = () => {
           setCurrentGlucose(Number(e.target.value))}
       />
       Активный
-      инсулин {newActiveInsulin} {lefTimeActiveInsulin && <>(прошло {ACTIVE_MINUTES - lefTimeActiveInsulin} минут)</>}
+      инсулин {newActiveInsulin}{' '}
+      {passedTimeActiveInsulin &&
+          <>(прошло {Math.floor(passedTimeActiveInsulin / 60)} ч {passedTimeActiveInsulin % 60} мин)</>
+      }
       <Select
         value={selectedSettings}
         onChange={(e) =>
