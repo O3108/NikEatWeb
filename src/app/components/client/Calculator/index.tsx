@@ -94,7 +94,7 @@ const Calculator = () => {
     }
     setIsLoading(false)
   }, [activeInsulin, totalValue, getActiveInsulin])
-
+  
   return (
     <div className={styles.Calculator}>
       <TextField
@@ -105,7 +105,8 @@ const Calculator = () => {
         onChange={(e) =>
           setCurrentGlucose(Number(e.target.value))}
       />
-      Активный инсулин {newActiveInsulin}
+      Активный
+      инсулин {newActiveInsulin} {lefTimeActiveInsulin && <>(прошло {ACTIVE_MINUTES - lefTimeActiveInsulin} минут)</>}
       <Select
         value={selectedSettings}
         onChange={(e) =>
