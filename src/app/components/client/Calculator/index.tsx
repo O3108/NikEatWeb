@@ -46,7 +46,14 @@ const Calculator = () => {
     } else {
       return acc
     }
-  }, 0) + (currentGlucose ? (currentGlucose > 7 ? (currentGlucose - 7) / 3 : 0) - newActiveInsulin : 0))
+  }, 0) + (currentGlucose
+    ? (currentGlucose > 7
+      ? (currentGlucose - 7) / 3
+      : 0)
+    - (passedTimeActiveInsulin > 30
+      ? newActiveInsulin
+      : 0)
+    : 0))
 
   const totalXE = Math.round(selectedProducts.reduce((acc, curr) => {
     return acc += curr.value * curr.count;
