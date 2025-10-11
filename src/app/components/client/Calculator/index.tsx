@@ -98,8 +98,19 @@ const Calculator = () => {
     setIsLoading(false)
   }, [activeInsulin, totalValue, getActiveInsulin])
 
+  const onSearch = async () => {
+    const response = await fetch(`/api/search-products`, {
+      method: "POST",
+      body: JSON.stringify('орехи'),
+      headers: {'Content-Type': 'application/json'}
+    })
+
+    console.log('aaa', response)
+  }
+
   return (
     <div className={styles.Calculator}>
+      <Button onClick={onSearch}>найти</Button>
       <TextField
         className={styles.TextField}
         label='Сахар'
