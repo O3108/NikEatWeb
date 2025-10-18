@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {neon} from "@neondatabase/serverless";
 import {Glucose} from "@/src/app/Providers/StoreProvider";
-import moment from "moment";
+import moment from "moment-timezone";
 
 type GlucoseHistory = {
   "status": number,
@@ -35,10 +35,19 @@ export const POST = async (req: Request) => {
     const newDay = glucose.day;
     const newNight = glucose.night;
     let glucoseHistory: GlucoseHistory | null = null;
-    const hours = Number(moment().format('HH'));
+    
+    // Используем московское время (UTC+5)
+    const now = moment.tz('Asia/Yekaterinburg');
+    const hours = Number(now.format('HH'));
+    
+    console.log('Current time (Yekaterinburg):', now.format('DD.MM.YY HH:mm'));
+    console.log('Current hour:', hours);
+    console.log('Night date:', glucose.night.date);
+    console.log('Day date:', glucose.day.date);
 
     // Обновление ночных данных (после 10:00)
-    if (hours >= 10 && moment(glucose.night.date, 'DD.MM.YY').isBefore(moment(), 'day')) {
+    if (hours >= 10 && moment(glucose.night.date, 'DD.MM.YY').isBefore(now, 'day')) {
+      console.log('Updating night glucose data...');
       // Получаем данные из LibreView
       const login = await fetch(
         'https://api.libreview.ru/auth/login',
@@ -92,7 +101,7 @@ export const POST = async (req: Request) => {
       glucoseHistory = await response.json();
 
       if (glucoseHistory) {
-        newNight.date = moment().format('DD.MM.YY');
+        newNight.date = now.format('DD.MM.YY');
         const glucoseNow = glucoseHistory.data.periods[0].avgGlucose;
         const yDayAll = glucoseHistory.data.periods[1].avgGlucose;
         const yDayCut = newDay.totalGlucose;
@@ -117,7 +126,8 @@ export const POST = async (req: Request) => {
     }
 
     // Обновление дневных данных (после 22:00)
-    if (hours >= 22 && moment(glucose.day.date, 'DD.MM.YY').isBefore(moment(), 'day')) {
+    if (hours >= 22 && moment(glucose.day.date, 'DD.MM.YY').isBefore(now, 'day')) {
+      console.log('Updating day glucose data...');
       // Если данные еще не получены, получаем их
       if (!glucoseHistory) {
         const login = await fetch(
@@ -173,7 +183,7 @@ export const POST = async (req: Request) => {
       }
 
       if (glucoseHistory) {
-        newDay.date = moment().format('DD.MM.YY');
+        newDay.date = now.format('DD.MM.YY');
         const glucoseNow = glucoseHistory.data.periods[0].avgGlucose;
         const newDayValue = ((glucoseNow * 3) - newNight.totalGlucose) / 2;
 
@@ -198,6 +208,7 @@ export const POST = async (req: Request) => {
 
     // Сохраняем обновленные данные в БД, если были изменения
     if (glucoseHistory) {
+      console.log('Saving glucose data to database...');
       const sql = neon(`${process.env.DATABASE_URL}`);
       await sql(`UPDATE glucose
                  SET period        = 'day',
@@ -216,8 +227,12 @@ export const POST = async (req: Request) => {
                      value         = ${newGlucose.night.value},
                      total_glucose = ${newGlucose.night.totalGlucose}
                  WHERE ID = ${newGlucose.night.id}`);
+      console.log('Database updated successfully');
+    } else {
+      console.log('No glucose history fetched, returning original data');
     }
 
+    console.log('Returning glucose data:', newGlucose);
     return NextResponse.json(newGlucose);
   } catch (error: any) {
     return NextResponse.json({error: error.message}, {status: 500});
