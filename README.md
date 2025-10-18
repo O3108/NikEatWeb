@@ -2,6 +2,18 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Environment Variables
+
+Create a `.env.development.local` file in the root directory with the following variables:
+
+```env
+DATABASE_URL=your_neon_database_url
+LIBRE_EMAIL=your_libreview_email@example.com
+LIBRE_PASSWORD=your_libreview_password
+```
+
+### Running the Development Server
+
 First, run the development server:
 
 ```bash

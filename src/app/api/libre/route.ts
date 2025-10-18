@@ -71,7 +71,7 @@ export const POST = async () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(
-          {email: 'o3108@yandex.ru', password: 'Olegchurilov92'}
+          {email: process.env.LIBRE_EMAIL, password: process.env.LIBRE_PASSWORD}
         ),
       },
     );

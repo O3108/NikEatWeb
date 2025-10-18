@@ -1,7 +1,6 @@
 "use client"
 
 import React, {createContext, useContext, useEffect, useState} from 'react';
-import {getGlucose} from "@/src/app/utils/client";
 import Loading from "@/src/app/loading";
 import ImportFile from "@/src/app/components/client/ImportFile";
 import moment from "moment";
@@ -81,18 +80,21 @@ const StoreProvider = ({children}: StoreProviderProps) => {
   const [activeInsulin, setActiveInsulin] = useState<ActiveInsulin | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isAccessEdit, setIsAccessEdit] = useState<boolean>(true)
-  const controller = new AbortController();
+  const [controller, setController] = useState<AbortController | null>(null);
 
   useEffect(() => {
+    const abortController = new AbortController();
+    setController(abortController);
+
     const getData = async () => {
       setIsLoading(true);
       try {
         const [responseProducts, responseSettings, responseAvgGlucose, responseActiveInsulin] = await Promise.all(
           [
-            fetch(`/api/products`, {method: 'GET', signal: controller.signal}),
-            fetch(`/api/settings`, {method: 'GET', signal: controller.signal}),
-            fetch(`/api/glucose`, {method: 'GET', signal: controller.signal}),
-            fetch(`/api/active-insulin`, {method: 'GET', signal: controller.signal}),
+            fetch(`/api/products`, {method: 'GET', signal: abortController.signal}),
+            fetch(`/api/settings`, {method: 'GET', signal: abortController.signal}),
+            fetch(`/api/glucose`, {method: 'GET', signal: abortController.signal}),
+            fetch(`/api/active-insulin`, {method: 'GET', signal: abortController.signal}),
           ]
         );
 
@@ -109,8 +111,14 @@ const StoreProvider = ({children}: StoreProviderProps) => {
           setSettings(settings);
         }
         if (!('error' in glucose)) {
-          const response = await getGlucose(glucose)
-          setGlucose(response)
+          const calculateResponse = await fetch('/api/glucose/calculate', {
+            method: 'POST',
+            body: JSON.stringify(glucose),
+            headers: {'Content-Type': 'application/json'},
+            signal: abortController.signal
+          });
+          const calculatedGlucose: Glucose = await calculateResponse.json();
+          setGlucose(calculatedGlucose);
         }
         if (!('error' in activeInsulin)) {
           if (localeActiveInsuline && moment(localeActiveInsuline.date, 'DD.MM.YY HH:mm').isAfter(moment(activeInsulin.date, 'DD.MM.YY HH:mm'))) {
@@ -120,12 +128,21 @@ const StoreProvider = ({children}: StoreProviderProps) => {
           }
         }
       } catch (e) {
-        setIsAccessEdit(false)
+        if (!abortController.signal.aborted) {
+          setIsAccessEdit(false)
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setIsLoading(false)
+        }
       }
-      setIsLoading(false)
     }
 
     getData();
+
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
   return (
@@ -142,7 +159,7 @@ const StoreProvider = ({children}: StoreProviderProps) => {
         isAccessEdit
       }}>
       {isLoading && <Loading/>}
-      {isLoading && <ImportFile controller={controller}/>}
+      {isLoading && controller && <ImportFile controller={controller}/>}
       {children}
     </StoreContext.Provider>
   );
