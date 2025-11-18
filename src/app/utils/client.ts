@@ -1,6 +1,7 @@
 "use client"
 
 import {Glucose, Product, Settings} from "@/src/app/Providers/StoreProvider";
+import {GlucosePeriodData} from "@/src/app/constants/glucose";
 import * as XLSX from 'xlsx';
 
 const SHEET_NAMES = {
@@ -33,6 +34,7 @@ export const exportToExcel = async (data: {
   const glucose = [
     ...(data.glucose?.day ? Object.entries(data.glucose.day).map(item => ['day', ...item]) : []),
     ...(data.glucose?.night ? Object.entries(data.glucose.night).map(item => ['night', ...item]) : []),
+    ...(data.glucose?.allDay ? Object.entries(data.glucose.allDay).map(item => ['allDay', ...item]) : []),
   ]
 
   // Преобразуем данные в рабочий лист
@@ -89,42 +91,25 @@ export const importFromExcel = (file: File, setData: (data: {
         id: 0, longMorning: 0, longEvening: 0, breakfast: 0, lunch: 0,
         dinner: 0
       });
-      const glucose = (XLSX.utils.sheet_to_json(glucoseWorksheet, {header: 1}) as ['day' | 'night', string, number | string][]).reduce<{
-        day: {
-          id: number,
-          date: string,
-          value: number,
-          highCount: number,
-          lowCount: number,
-          totalGlucose: number
-        },
-        night: {
-          id: number,
-          date: string,
-          value: number,
-          highCount: number,
-          lowCount: number,
-          totalGlucose: number
-        },
+      const defaultPeriod: GlucosePeriodData = {
+        id: 0,
+        date: '',
+        value: 0,
+        highCount: 0,
+        lowCount: 0,
+        totalGlucose: 0
+      };
+
+      const glucose = (XLSX.utils.sheet_to_json(glucoseWorksheet, {header: 1}) as ['day' | 'night' | 'allDay', string, number | string][]).reduce<{
+        day: GlucosePeriodData,
+        night: GlucosePeriodData,
+        allDay: GlucosePeriodData,
       }>((acc, curr) => {
         return {...acc, [curr[0]]: {...acc[curr[0]], [curr[1]]: curr[2]}}
       }, {
-        day: {
-          id: 0,
-          date: '',
-          value: 0,
-          highCount: 0,
-          lowCount: 0,
-          totalGlucose: 0
-        },
-        night: {
-          id: 0,
-          date: '',
-          value: 0,
-          highCount: 0,
-          lowCount: 0,
-          totalGlucose: 0
-        }
+        day: {...defaultPeriod},
+        night: {...defaultPeriod},
+        allDay: {...defaultPeriod}
       });
 
       setData({products, settings, glucose})

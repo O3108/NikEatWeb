@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {neon} from "@neondatabase/serverless";
 import {Glucose} from "@/src/app/Providers/StoreProvider";
 import moment from "moment-timezone";
+import {GLUCOSE_THRESHOLDS} from "@/src/app/constants/glucose";
 
 type GlucoseHistory = {
   "status": number,
@@ -32,14 +33,16 @@ export const POST = async (req: Request) => {
     }
 
     const glucose: Glucose = await req.json();
+
     const newDay = glucose.day;
     const newNight = glucose.night;
+    const newAllDay = glucose.allDay;
     let glucoseHistory: GlucoseHistory | null = null;
-    
+
     // Используем московское время (UTC+5)
     const now = moment.tz('Asia/Yekaterinburg');
     const hours = Number(now.format('HH'));
-    
+
     console.log('Current time (Yekaterinburg):', now.format('DD.MM.YY HH:mm'));
     console.log('Current hour:', hours);
     console.log('Night date:', glucose.night.date);
@@ -61,7 +64,7 @@ export const POST = async (req: Request) => {
           ),
         },
       );
-      
+
       if (!login.ok) {
         console.error('LibreView login failed:', login.status, login.statusText);
         return NextResponse.json(glucose);
@@ -92,7 +95,7 @@ export const POST = async (req: Request) => {
           },
         },
       );
-      
+
       if (!response.ok) {
         console.error('LibreView glucose history failed:', response.status, response.statusText);
         return NextResponse.json(glucose);
@@ -111,13 +114,13 @@ export const POST = async (req: Request) => {
         newNight.value = newNightValue;
         newNight.totalGlucose = glucoseNow;
 
-        if (newNightValue > 8) {
+        if (newNightValue > GLUCOSE_THRESHOLDS.HIGH_NIGHT) {
           newNight.highCount += 1;
         } else {
           newNight.highCount = 0;
         }
 
-        if (newNightValue < 6) {
+        if (newNightValue < GLUCOSE_THRESHOLDS.LOW) {
           newNight.lowCount += 1;
         } else {
           newNight.lowCount = 0;
@@ -142,7 +145,7 @@ export const POST = async (req: Request) => {
             ),
           },
         );
-        
+
         if (!login.ok) {
           console.error('LibreView login failed:', login.status, login.statusText);
           return NextResponse.json(glucose);
@@ -173,7 +176,7 @@ export const POST = async (req: Request) => {
             },
           },
         );
-        
+
         if (!response.ok) {
           console.error('LibreView glucose history failed:', response.status, response.statusText);
           return NextResponse.json(glucose);
@@ -190,13 +193,13 @@ export const POST = async (req: Request) => {
         newDay.value = newDayValue;
         newDay.totalGlucose = glucoseNow;
 
-        if (newDayValue > 9) {
+        if (newDayValue > GLUCOSE_THRESHOLDS.HIGH_DAY) {
           newDay.highCount += 1;
         } else {
           newDay.highCount = 0;
         }
 
-        if (newDayValue < 6) {
+        if (newDayValue < GLUCOSE_THRESHOLDS.LOW) {
           newDay.lowCount += 1;
         } else {
           newDay.lowCount = 0;
@@ -204,29 +207,107 @@ export const POST = async (req: Request) => {
       }
     }
 
-    const newGlucose = {day: newDay, night: newNight};
+    // Обновление суточных данных
+    if (moment(glucose.allDay.date, 'DD.MM.YY').isBefore(now, 'day')) {
+      console.log('Updating allDay glucose data...');
+      // Если данные еще не получены, получаем их
+      if (!glucoseHistory) {
+        const login = await fetch(
+          'https://api.libreview.ru/auth/login',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(
+              {email: process.env.LIBRE_EMAIL, password: process.env.LIBRE_PASSWORD}
+            ),
+          },
+        );
+
+        if (!login.ok) {
+          console.error('LibreView login failed:', login.status, login.statusText);
+          return NextResponse.json(glucose);
+        }
+
+        const loginResult: {
+          data?: {
+            authTicket: {
+              "token": string,
+              "expires": number,
+              "duration": number
+            }
+          }, status: number
+        } = await login.json();
+
+        if (!loginResult.data?.authTicket?.token) {
+          console.error('LibreView login response missing token:', loginResult);
+          return NextResponse.json(glucose);
+        }
+
+        const response = await fetch(
+          'https://api.libreview.ru/glucoseHistory?numPeriods=2&period=1',
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              authorization: `Bearer ${loginResult.data.authTicket.token}`
+            },
+          },
+        );
+
+        if (!response.ok) {
+          console.error('LibreView glucose history failed:', response.status, response.statusText);
+          return NextResponse.json(glucose);
+        }
+
+        glucoseHistory = await response.json();
+      }
+
+      if (glucoseHistory) {
+        newAllDay.date = now.format('DD.MM.YY');
+        const newAllDayValue = glucoseHistory.data.periods[1].avgGlucose;
+
+        newAllDay.value = newAllDayValue;
+        newAllDay.totalGlucose = newAllDayValue;
+
+        if (newAllDayValue > GLUCOSE_THRESHOLDS.HIGH_ALL_DAY) {
+          newAllDay.highCount += 1;
+        } else {
+          newAllDay.highCount = 0;
+        }
+
+        if (newAllDayValue < GLUCOSE_THRESHOLDS.LOW) {
+          newAllDay.lowCount += 1;
+        } else {
+          newAllDay.lowCount = 0;
+        }
+      }
+    }
+
+    const newGlucose = {day: newDay, night: newNight, allDay: newAllDay};
 
     // Сохраняем обновленные данные в БД, если были изменения
     if (glucoseHistory) {
       console.log('Saving glucose data to database...');
       const sql = neon(`${process.env.DATABASE_URL}`);
-      await sql(`UPDATE glucose
-                 SET period        = 'day',
-                     date          = '${newGlucose.day.date}',
-                     high_count    = ${newGlucose.day.highCount},
-                     low_count     = ${newGlucose.day.lowCount},
-                     value         = ${newGlucose.day.value},
-                     total_glucose = ${newGlucose.day.totalGlucose}
-                 WHERE ID = ${newGlucose.day.id}`);
 
-      await sql(`UPDATE glucose
-                 SET period        = 'night',
-                     date          = '${newGlucose.night.date}',
-                     high_count    = ${newGlucose.night.highCount},
-                     low_count     = ${newGlucose.night.lowCount},
-                     value         = ${newGlucose.night.value},
-                     total_glucose = ${newGlucose.night.totalGlucose}
-                 WHERE ID = ${newGlucose.night.id}`);
+      // Используем параметризованные запросы для защиты от SQL-инъекций
+      await sql(
+        'UPDATE glucose SET period = $1, date = $2, high_count = $3, low_count = $4, value = $5, total_glucose = $6 WHERE id = $7',
+        ['day', newGlucose.day.date, newGlucose.day.highCount, newGlucose.day.lowCount, newGlucose.day.value, newGlucose.day.totalGlucose, newGlucose.day.id]
+      );
+
+      await sql(
+        'UPDATE glucose SET period = $1, date = $2, high_count = $3, low_count = $4, value = $5, total_glucose = $6 WHERE id = $7',
+        ['night', newGlucose.night.date, newGlucose.night.highCount, newGlucose.night.lowCount, newGlucose.night.value, newGlucose.night.totalGlucose, newGlucose.night.id]
+      );
+
+      await sql(
+        'UPDATE glucose SET period = $1, date = $2, high_count = $3, low_count = $4, value = $5, total_glucose = $6 WHERE id = $7',
+        ['allDay', newGlucose.allDay.date, newGlucose.allDay.highCount, newGlucose.allDay.lowCount, newGlucose.allDay.value, newGlucose.allDay.totalGlucose, newGlucose.allDay.id]
+      );
+
       console.log('Database updated successfully');
     } else {
       console.log('No glucose history fetched, returning original data');

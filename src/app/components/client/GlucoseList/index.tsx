@@ -6,6 +6,7 @@ import {Glucose, useStore} from "@/src/app/Providers/StoreProvider";
 import ClearIcon from '@mui/icons-material/Clear';
 import {CircularProgress, IconButton} from "@mui/material";
 import {useAlert} from "@/src/app/Providers/AlertProvider";
+import {GLUCOSE_THRESHOLDS} from "@/src/app/constants/glucose";
 
 const GlucoseList = () => {
   const {glucose, setGlucose, isAccessEdit} = useStore()
@@ -44,9 +45,9 @@ const GlucoseList = () => {
     <div className={styles.GlucoseList}>
       <h2>Средний день ({glucose?.day.date}) —{' '}
         <span
-          className={(glucose?.day.value || 0) < 6
+          className={(glucose?.day.value || 0) < GLUCOSE_THRESHOLDS.LOW
             ? styles.Red
-            : (glucose?.day.value || 0) > 9
+            : (glucose?.day.value || 0) > GLUCOSE_THRESHOLDS.HIGH_DAY
               ? styles.Orange
               : styles.Green}
         >
@@ -55,13 +56,24 @@ const GlucoseList = () => {
       </h2>
       <h2>Средний ночь ({glucose?.night.date}) —{' '}
         <span
-          className={(glucose?.night.value || 0) < 6
+          className={(glucose?.night.value || 0) < GLUCOSE_THRESHOLDS.LOW
             ? styles.Red
-            : (glucose?.night.value || 0) > 8
+            : (glucose?.night.value || 0) > GLUCOSE_THRESHOLDS.HIGH_NIGHT
               ? styles.Orange
               : styles.Green}
         >
           {Math.round((glucose?.night.value || 0) * 10) / 10}
+        </span>
+      </h2>
+      <h2>Средний за сутки ({glucose?.allDay.date}) —{' '}
+        <span
+          className={(glucose?.allDay.value || 0) < GLUCOSE_THRESHOLDS.LOW
+            ? styles.Red
+            : (glucose?.allDay.value || 0) > GLUCOSE_THRESHOLDS.HIGH_ALL_DAY
+              ? styles.Orange
+              : styles.Green}
+        >
+          {Math.round((glucose?.allDay.value || 0) * 10) / 10}
         </span>
       </h2>
       <h2 className={styles.ButtonItem}>
@@ -103,6 +115,28 @@ const GlucoseList = () => {
           disabled={!isAccessEdit}
           onClick={() =>
             glucose && onEditGlucose({...glucose, night: {...glucose.night, lowCount: 0}})
+          }
+        >
+          {isLoading ? <CircularProgress size={24}/> : <ClearIcon/>}
+        </IconButton>
+      </h2>
+      <h2 className={styles.ButtonItem}>
+        Высоких суток — {glucose?.allDay.highCount}
+        <IconButton
+          disabled={!isAccessEdit}
+          onClick={() =>
+            glucose && onEditGlucose({...glucose, allDay: {...glucose.allDay, highCount: 0}})
+          }
+        >
+          {isLoading ? <CircularProgress size={24}/> : <ClearIcon/>}
+        </IconButton>
+      </h2>
+      <h2 className={styles.ButtonItem}>
+        Низких суток — {glucose?.allDay.lowCount}
+        <IconButton
+          disabled={!isAccessEdit}
+          onClick={() =>
+            glucose && onEditGlucose({...glucose, allDay: {...glucose.allDay, lowCount: 0}})
           }
         >
           {isLoading ? <CircularProgress size={24}/> : <ClearIcon/>}

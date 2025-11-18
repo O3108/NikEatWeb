@@ -4,6 +4,7 @@ import React, {createContext, useContext, useEffect, useState} from 'react';
 import Loading from "@/src/app/loading";
 import ImportFile from "@/src/app/components/client/ImportFile";
 import moment from "moment";
+import {GlucosePeriodData} from "@/src/app/constants/glucose";
 
 export type Product = { name: string, value: number, id: number }
 export type Settings = {
@@ -15,22 +16,9 @@ export type Settings = {
   "dinner": number
 }
 export type Glucose = {
-  day: {
-    id: number;
-    date: string;
-    value: number;
-    highCount: number;
-    lowCount: number;
-    totalGlucose: number;
-  },
-  night: {
-    id: number;
-    date: string;
-    value: number;
-    highCount: number;
-    lowCount: number;
-    totalGlucose: number;
-  }
+  day: GlucosePeriodData;
+  night: GlucosePeriodData;
+  allDay: GlucosePeriodData;
 }
 
 export type ActiveInsulin = {
