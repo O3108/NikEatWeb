@@ -82,13 +82,14 @@ export const importFromExcel = (file: File, setData: (data: {
         id: number,
         longMorning: number,
         longEvening: number,
+        longDay: number,
         breakfast: number,
         lunch: number,
         dinner: number
       }>((acc, curr) => {
         return {...acc, [curr[0]]: curr[2]}
       }, {
-        id: 0, longMorning: 0, longEvening: 0, breakfast: 0, lunch: 0,
+        id: 0, longMorning: 0, longEvening: 0, longDay: 0, breakfast: 0, lunch: 0,
         dinner: 0
       });
       const defaultPeriod: GlucosePeriodData = {
