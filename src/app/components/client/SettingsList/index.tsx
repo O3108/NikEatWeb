@@ -92,6 +92,13 @@ const SettingsList = () => {
         onChange={(e) =>
           onChangeSettings('longEvening', Number(e.target.value))}
       />
+      <TextField
+        label='Длинный на сутки'
+        type='number'
+        defaultValue={settings?.longDay}
+        onChange={(e) =>
+          onChangeSettings('longDay', Number(e.target.value))}
+      />
       <Button disabled={isLoading || !isAccessEdit} onClick={onSave} variant='contained' className={styles.Button}>
         {isLoading ? <CircularProgress/> : 'Сохранить'}
       </Button>

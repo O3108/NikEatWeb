@@ -6,7 +6,7 @@ type SERVER_SETTINGS = Record<"id" |
   "breakfast" |
   "dinner" |
   "long_evening" |
-  "long_morning" |
+  "long_morning" | "long_day" |
   "lunch", number>[]
 
 export const GET = async () => {
@@ -16,7 +16,7 @@ export const GET = async () => {
     const settings = response[0]
 
     return NextResponse.json(
-      {...settings, longEvening: settings.long_evening, longMorning: settings.long_morning}
+      {...settings, longEvening: settings.long_evening, longMorning: settings.long_morning, longDay: settings.long_day}
     );
   } catch (error: any) {
     return NextResponse.json({error: error.message});
@@ -33,6 +33,7 @@ export const PATCH = async (req: Request) => {
                    dinner       = ${settings.dinner},
                    long_evening = ${settings.longEvening},
                    long_morning = ${settings.longMorning},
+                   long_day     = ${settings.longDay},
                    lunch        = ${settings.lunch}
                WHERE ID = ${settings.id}`)
 
