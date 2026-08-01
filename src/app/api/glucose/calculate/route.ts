@@ -3,20 +3,7 @@ import {neon} from "@neondatabase/serverless";
 import {Glucose} from "@/src/app/Providers/StoreProvider";
 import moment from "moment-timezone";
 import {GLUCOSE_THRESHOLDS} from "@/src/app/constants/glucose";
-
-type GlucoseHistory = {
-  "status": number,
-  "data": {
-    "periods": [
-      {
-        "avgGlucose": number,
-      },
-      {
-        "avgGlucose": number,
-      }
-    ]
-  }
-}
+import {fetchGlucoseHistory, type GlucoseHistory} from "@/src/app/utils/libre";
 
 type SERVER_GLUCOSE = Record<"id" | "period" | "date" | "high_count" | "low_count" | "value" | "total_glucose", number |
   string | Date>[]
@@ -48,60 +35,23 @@ export const POST = async (req: Request) => {
     console.log('Night date:', glucose.night.date);
     console.log('Day date:', glucose.day.date);
 
+    // Единая ленивая загрузка истории глюкозы из LibreView (кэшируется на один вызов)
+    const getGlucoseHistory = async (): Promise<GlucoseHistory | null> => {
+      if (glucoseHistory) return glucoseHistory;
+      try {
+        glucoseHistory = await fetchGlucoseHistory();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error('LibreView glucose history fetch failed:', message);
+        glucoseHistory = null;
+      }
+      return glucoseHistory;
+    };
+
     // Обновление ночных данных (после 10:00)
     if (hours >= 10 && moment(glucose.night.date, 'DD.MM.YY').isBefore(now, 'day')) {
       console.log('Updating night glucose data...');
-      // Получаем данные из LibreView
-      const login = await fetch(
-        'https://api.libreview.ru/auth/login',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(
-            {email: process.env.LIBRE_EMAIL, password: process.env.LIBRE_PASSWORD}
-          ),
-        },
-      );
-
-      if (!login.ok) {
-        console.error('LibreView login failed:', login.status, login.statusText);
-        return NextResponse.json(glucose);
-      }
-
-      const loginResult: {
-        data?: {
-          authTicket: {
-            "token": string,
-            "expires": number,
-            "duration": number
-          }
-        }, status: number
-      } = await login.json();
-
-      if (!loginResult.data?.authTicket?.token) {
-        console.error('LibreView login response missing token:', loginResult);
-        return NextResponse.json(glucose);
-      }
-
-      const response = await fetch(
-        'https://api.libreview.ru/glucoseHistory?numPeriods=2&period=1',
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            authorization: `Bearer ${loginResult.data.authTicket.token}`
-          },
-        },
-      );
-
-      if (!response.ok) {
-        console.error('LibreView glucose history failed:', response.status, response.statusText);
-        return NextResponse.json(glucose);
-      }
-
-      glucoseHistory = await response.json();
+      glucoseHistory = await getGlucoseHistory();
 
       if (glucoseHistory) {
         newNight.date = now.format('DD.MM.YY');
@@ -133,56 +83,7 @@ export const POST = async (req: Request) => {
       console.log('Updating day glucose data...');
       // Если данные еще не получены, получаем их
       if (!glucoseHistory) {
-        const login = await fetch(
-          'https://api.libreview.ru/auth/login',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(
-              {email: process.env.LIBRE_EMAIL, password: process.env.LIBRE_PASSWORD}
-            ),
-          },
-        );
-
-        if (!login.ok) {
-          console.error('LibreView login failed:', login.status, login.statusText);
-          return NextResponse.json(glucose);
-        }
-
-        const loginResult: {
-          data?: {
-            authTicket: {
-              "token": string,
-              "expires": number,
-              "duration": number
-            }
-          }, status: number
-        } = await login.json();
-
-        if (!loginResult.data?.authTicket?.token) {
-          console.error('LibreView login response missing token:', loginResult);
-          return NextResponse.json(glucose);
-        }
-
-        const response = await fetch(
-          'https://api.libreview.ru/glucoseHistory?numPeriods=2&period=1',
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              authorization: `Bearer ${loginResult.data.authTicket.token}`
-            },
-          },
-        );
-
-        if (!response.ok) {
-          console.error('LibreView glucose history failed:', response.status, response.statusText);
-          return NextResponse.json(glucose);
-        }
-
-        glucoseHistory = await response.json();
+        glucoseHistory = await getGlucoseHistory();
       }
 
       if (glucoseHistory) {
@@ -212,56 +113,7 @@ export const POST = async (req: Request) => {
       console.log('Updating allDay glucose data...');
       // Если данные еще не получены, получаем их
       if (!glucoseHistory) {
-        const login = await fetch(
-          'https://api.libreview.ru/auth/login',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(
-              {email: process.env.LIBRE_EMAIL, password: process.env.LIBRE_PASSWORD}
-            ),
-          },
-        );
-
-        if (!login.ok) {
-          console.error('LibreView login failed:', login.status, login.statusText);
-          return NextResponse.json(glucose);
-        }
-
-        const loginResult: {
-          data?: {
-            authTicket: {
-              "token": string,
-              "expires": number,
-              "duration": number
-            }
-          }, status: number
-        } = await login.json();
-
-        if (!loginResult.data?.authTicket?.token) {
-          console.error('LibreView login response missing token:', loginResult);
-          return NextResponse.json(glucose);
-        }
-
-        const response = await fetch(
-          'https://api.libreview.ru/glucoseHistory?numPeriods=2&period=1',
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              authorization: `Bearer ${loginResult.data.authTicket.token}`
-            },
-          },
-        );
-
-        if (!response.ok) {
-          console.error('LibreView glucose history failed:', response.status, response.statusText);
-          return NextResponse.json(glucose);
-        }
-
-        glucoseHistory = await response.json();
+        glucoseHistory = await getGlucoseHistory();
       }
 
       if (glucoseHistory) {
